@@ -1,9 +1,8 @@
 <?php
 	error_reporting(E_ALL);
+        include('_include.php');
+        bootstrap_d7();
 	echo "<PRE>";
-	include("_include.php");
-	include("oauth/TwitterAPIExchange.php");
-	bootstrap_d7();
 
 	date_default_timezone_set('America/New_York');
 
@@ -28,7 +27,7 @@
 	 */
 	function cron_instagram($tag, $access_token, $table){
 
-		$access_token = 'ACCESS_TOKEN_HERE';
+		$access_token = '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa';
 
 		$table = 'social_instagram';
 		$instagram_query = "https://api.instagram.com/v1/tags/$tag/media/recent?access_token=$access_token";
@@ -36,7 +35,7 @@
 		$instagram_feed = json_decode(api_call($instagram_query));
 
 		 echo "<pre style='font-size:14px;'>";
-		 	//var_dump($instagram_feed);
+		 	var_dump($instagram_feed);
 		 echo "</pre>";
 
 		 foreach($instagram_feed->data as $feed){
@@ -211,9 +210,9 @@
 	cron_instagram('rmcad', 'STRINGOFNUMBERS','social_instagram');
 
 	//Initiate the twitter cron to pull from the @RMCAD account
-	cron_twitter_username('rmcad', 25, 'social_twitter');
+//	cron_twitter_username('rmcad', 25, 'social_twitter');
 
 	//Initiate twitter cron to pull all tweets with '#rmcad' hashtag
-	cron_twitter_hashtag('%23rmcad%20OR%20%40rmcad',25,'social_twitter');
+//	cron_twitter_hashtag('%23rmcad%20OR%20%40rmcad',25,'social_twitter');
 
 ?>

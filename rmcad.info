@@ -1,6 +1,0 @@
-name = RMCAD Util
-description = RMCAD Utility Functions 
-package = "RMCAD"
-project = "rmcad"
-core = 7.x
-version = "7.x-1.2"

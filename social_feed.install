@@ -1,0 +1,90 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function social_feed_schema() {
+
+  $schema['social_instagram'] = array(
+    'description' => 'Stores instagram photo data',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique ID.',
+        'no export' => TRUE, // Do not export database-only keys.
+      ),
+      'user_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User ID',
+      ),
+      'tags' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Tags',
+      ),
+      'time' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Client title',
+      ),
+      'low_resolution' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Low resolution',
+      ),
+      'thumbnail' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Thumbnail',
+      ),
+      'standard_resolution' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Std resolution',
+      ),
+      'caption' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'Caption',
+      ),
+      'instagram_id' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Instagram ID',
+      ),
+      'instagram_link' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Instagram Link',
+      ),
+      'instagram_user' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Instagram Username',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+
+}
