@@ -81,6 +81,12 @@ function social_feed_schema() {
         'default' => '',
         'description' => 'Instagram Username',
       ),
+      'approve' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Approval status',
+      ),
     ),
     'primary key' => array('id'),
   );
