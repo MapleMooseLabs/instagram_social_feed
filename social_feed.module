@@ -261,3 +261,72 @@ echo "Input Filter, input: $input\n";
 		}
 	}
 }
+
+//Enter query to make CURL request to API
+function api_call($query){
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, $query);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+  curl_setopt($curl, CURLOPT_TIMEOUT, 20);
+  $result= curl_exec($curl);
+  curl_close($curl);
+
+  return $result;
+}
+
+function social_feed_cron() {
+
+  $access_token = '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa';
+
+  $tag = "rmcad";
+
+  $table = 'social_instagram';
+  $instagram_query = "https://api.instagram.com/v1/tags/$tag/media/recent?access_token=$access_token";
+
+  $instagram_feed = json_decode(api_call($instagram_query));
+
+   echo "<pre style='font-size:14px;'>";
+   var_dump($instagram_feed);
+   echo "</pre>";
+
+   foreach($instagram_feed->data as $feed){
+     //Check if instagram photo already exists based on unix timestamp
+     $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
+     $result = db_query($sql);
+     $count = $result->rowCount();
+
+     //Comma deliminate hashtag array and return as string
+     $tags = implode(",", $feed->tags);
+
+      //If no duplicate time entries proceed
+      if($count < 1){
+        $data = array(
+          'user_id' => $feed->user->id,
+          'tags' => $tags,
+          //Time stored in unix epoch format
+          'time'=>$feed->created_time,
+          'low_resolution' => $feed->images->low_resolution->url,
+          'thumbnail' => $feed->images->thumbnail->url,
+          'standard_resolution' => $feed->images->standard_resolution->url,
+          'caption' => utf8_encode($feed->caption->text),
+          'instagram_id' => $feed->id,
+          'instagram_link' => $feed->link,
+          'instagram_user' => $feed->user->username,
+        );
+
+        //Insert data into table
+        $result = db_insert($table)->fields($data)->execute();
+
+        $post = array(
+          'post_author'    => 1,
+          'post_content'   => $data['caption'],
+          'post_name'      => 'instagram_'.$data->time,
+          'post_parent'    => 0,
+          'post_status'    => 'publish',
+          'post_title'     => $data['caption'],
+          'post_type'      => 'instagram'
+        );
+      }
+   }
+}
