@@ -25,13 +25,21 @@ function social_feed_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/rmcad_social'] = array(
+  $items['admin/config/services/social_feed'] = array(
     'title' => 'Social Aggregator',
     'description' => 'Approve new items for site display',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('rmcad_social_admin'),
+    'page arguments' => array('social_feed_admin'),
     'access arguments' => array('access administration pages'),
     'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/config/services/social_feed/settings'] = array(
+    'title' => 'Manage settings',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('social_feed_settings'),
+    'access arguments' => array('administer social_feed settings'),
   );
 
   $items['ajax/social_approve'] = array(
@@ -42,6 +50,17 @@ function social_feed_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_permissions().
+ */
+function social_feed_permission() {
+  return array(
+    'administer social_feed settings' => array(
+      'title' => t('Administer Social Feed module settings'),
+    ),
+  );
 }
 
 function rmcad_social_overview() {
@@ -117,7 +136,7 @@ function rmcad_social_approve($id) {
 
 }
 
-function rmcad_social_admin() {
+function social_feed_admin() {
 
   ob_start();
   rmcad_social_overview();
@@ -329,4 +348,31 @@ function social_feed_cron() {
         );
       }
    }
+}
+
+/**
+ * Callback function for providing settings form
+ * to edit recipients of email alerts.
+ */
+function social_feed_settings() {
+
+  $form = array();
+  $form['fieldname'] = array(
+    '#markup' => "Paste the Instagram API access key here:",
+  );
+  $form['social_feed_api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Instagram API Key'),
+    '#default_value' => variable_get('social_feed_api_key', ''),
+    '#size' => 60,
+    '#maxlength' => 255,
+  );
+  $form['social_feed_auto_publish'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto-publish new photos'),
+    '#default_value' => variable_get('social_feed_auto_publish', ''),
+  );
+
+  return system_settings_form($form);
+
 }
