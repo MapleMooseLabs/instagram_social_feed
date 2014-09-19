@@ -11,20 +11,6 @@
 */
 function social_feed_menu() {
 
-  $items['ajax/social'] = array(
-    'title' => 'Events',
-    'page callback' => 'rmcad_social',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-  );
-
-  $items['social_overview'] = array(
-    'title' => 'Social Overview',
-    'page callback' => 'rmcad_social_overview',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-  );
-
   $items['admin/config/services/social_feed'] = array(
     'title' => 'Social Aggregator',
     'description' => 'Approve new items for site display',
@@ -44,7 +30,7 @@ function social_feed_menu() {
 
   $items['ajax/social_approve'] = array(
     'title' => 'Social Approve',
-    'page callback' => 'rmcad_social_approve',
+    'page callback' => 'social_feed_approve',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
@@ -63,83 +49,81 @@ function social_feed_permission() {
   );
 }
 
-function rmcad_social_overview() {
+function social_overview() {
 
-	global $user;
-	if($user->uid < 1) {
-		drupal_access_denied();
-		exit();
-	} else {
-	}
+  global $user;
+  if($user->uid < 1) {
+    drupal_access_denied();
+    exit();
+  }
 
+  $sql = "SELECT * from social_instagram ORDER BY instagram_id DESC";
+  $result = db_query($sql); ?>
 
-	$sql = "SELECT * from social_instagram ORDER BY instagram_id DESC";
-	$result = db_query($sql); ?>
+  <div style="display:block; float:left; width:40%;">
 
-	<div style="display:block; float:left; width:40%;">
+  <?php
+  foreach($result as $row): 
+    $time = date('Y-m-d g:i a', $row->time);
+  ?>
+    <div style="display:block; float:left; margin:10px; ">
+    <a href="<?php print $row->instagram_link; ?>" target="_blank"><img src="<?php print $row->thumbnail; ?>" /></a><br>
 
-	<?php
-	foreach($result as $row): 
-		$time = date('Y-m-d g:i a', $row->time);
-	?>
-		<div style="display:block; float:left; margin:10px; ">
-		<a href="<?php print $row->instagram_link; ?>" target="_blank"><img src="<?php print $row->thumbnail; ?>" /></a><br>
-		
-		<input type="checkbox" onclick="approve('?instagram_id=<?php print $row->instagram_id; ?>')" <?php if($row->approve == "1"): ?> checked="checked" <?php endif; ?> />
-		<b><?php print $row->instagram_user; ?></b><br> <?php print $time; ?>
-		</div>
+    <input type="checkbox" onclick="approve('?instagram_id=<?php print $row->instagram_id; ?>')" <?php if($row->approve == "1"): ?> checked="checked" <?php endif; ?> />
+    <b><?php print $row->instagram_user; ?></b><br> <?php print $time; ?>
+    </div>
 
-	<?php endforeach; ?>
-	</div>
+  <?php endforeach; ?>
+  </div>
 
-	<script type="text/javascript" src="/misc/jquery.js?v=1.4.4"></script>
-	<script type="text/javascript">
+  <script type="text/javascript" src="/misc/jquery.js?v=1.4.4"></script>
+  <script type="text/javascript">
 
-		function approve(id) {
-			jQuery.get('/ajax/social_approve' + id);
-		}
+    function approve(id) {
+      jQuery.get('/ajax/social_approve' + id);
+    }
 
-	</script>
+  </script>
 
 
-	<?php
+  <?php
 }
 
-function rmcad_social_approve($id) {
+function social_feed_approve($id) {
 
-	$table = "";
-	$column = "";
+  $table = "";
+  $column = "";
 
-	if(isset($_GET['twitter_id'])) {
-		$id = $_GET['twitter_id'];
-		$table = "social_twitter";
-		$column = "twitter_id";
-	} else if(isset($_GET['instagram_id'])) {
-		$id = $_GET['instagram_id'];
-		$table = "social_instagram";
-		$column = "instagram_id";
-	} else {
-		header("HTTP/1.1 500 Internal Server Error");
-		exit();
-	}
-	
-	$sql = "UPDATE $table SET approve = IF(approve=1, 0, 1); WHERE $column = $id LIMIT 1";
-	$result = db_update($table)
-		->expression(
-			'approve', 'IF(approve=1, 0, 1)'
-		)
-		->condition(
-			$column, $id
-		)
-		->execute(); 
-	
+  if(isset($_GET['twitter_id'])) {
+    $id = $_GET['twitter_id'];
+    $table = "social_twitter";
+    $column = "twitter_id";
+  } else if(isset($_GET['instagram_id'])) {
+    $id = $_GET['instagram_id'];
+    $table = "social_instagram";
+    $column = "instagram_id";
+  } else {
+    header("HTTP/1.1 500 Internal Server Error");
+    exit();
+  }
+  
+  $sql = "UPDATE $table SET approve = IF(approve=1, 0, 1); WHERE $column = $id LIMIT 1";
+  $result = db_update($table)
+    ->expression(
+      'approve', 'IF(approve=1, 0, 1)'
+    )
+    ->condition(
+      $column, $id
+    )
+    ->execute(); 
+  
 
 }
 
 function social_feed_admin() {
 
   ob_start();
-  rmcad_social_overview();
+  social_overview();
   $output = ob_get_clean();
 
   $form = array();
@@ -155,109 +139,17 @@ function social_feed_admin() {
   );*/
 
   $form['iframecontent'] = array(
-	'#markup' => $output,
+  '#markup' => $output,
   );
 
   $form = system_settings_form($form);
 
   unset($form['#submit']);
   unset($form['actions']);
-	
+  
   return $form;
 
 }
-
-function rmcad_social($page_num) {
-
-	if(isset($_GET['page_num']))
-		$page_num = $_GET['page_num'];
-	else
-		$page_num = 0;	
-
-	//echo "PAGE NUM: $page_num";
-
-	$count = 3;
-	$page_num = $page_num * $count;
-
-	$sql = "SELECT * FROM social_instagram WHERE approve = 1 ORDER BY instagram_id DESC LIMIT $page_num, $count";
-	//echo $sql;
-	$result = db_query($sql);
-	$instagrams = array();
-	foreach($result as $row) {
-		$instagrams[] = $row;
-	}
-
-	$sql = "SELECT * FROM social_twitter WHERE approve = 1 ORDER BY twitter_id DESC LIMIT $page_num, $count";
-	//echo $sql;
-	$result = db_query($sql);
-	$tweets = array();
-	foreach($result as $row) {
-		$tweets[] = $row;
-	}
-	?>
-
-	<!-- TEMP SOCIAL FEED FIX -->
-	<div class="clearfix active" id="homepage-activity-social">
-	    <div class="item twitter">
-		<header class="item-title">
-		    <h6>Twitter</h6>
-		</header>
-		<div class="item-content">
-		    <em><?php print $tweets[0]->tweet; ?></em>
-		    <cite>&mdash; <a href="https://twitter.com/<?php print $tweets[0]->user_name; ?>" target="_blank">@<?php print $tweets[0]->user_name; ?></a></cite>
-		</div>
-	    </div>
-	    <div class="item instagram">
-		<header class="item-title">
-		    <h6>Instagram</h6>
-		</header>
-		<div class="item-content">
-		    <a target="_blank" href="<?php print $instagrams[0]->instagram_link; ?>"><img alt="Photo Title" height="150" src="<?php print $instagrams[0]->thumbnail; ?>" width="150" /></a>
-		    <cite>&mdash; <a target="_blank" href="http://instagram.com/<?php print $instagrams[0]->instagram_user; ?>/">@<?php print $instagrams[0]->instagram_user; ?></a></cite>
-		</div>
-	    </div>
-	    <div class="item twitter last">
-		<header class="item-title">
-		    <h6>Twitter</h6>
-		</header>
-		<div class="item-content">
-		    <em><?php print $tweets[1]->tweet; ?></em>
-		    <cite>&mdash; <a href="https://twitter.com/<?php print $tweets[1]->user_name; ?>" target="_blank">@<?php print $tweets[1]->user_name; ?></a></cite>
-		</div>
-	    </div>
-	    <div class="item instagram">
-		<header class="item-title">
-		    <h6>Instagram</h6>
-		</header>
-		<div class="item-content">
-		    <a target="_blank" href="<?php print $instagrams[1]->instagram_link; ?>"><img alt="Photo Title" height="150" src="<?php print $instagrams[1]->thumbnail; ?>" width="150" /></a>
-		    <cite>&mdash; <a target="_blank" href="http://instagram.com/<?php print $instagrams[1]->instagram_user; ?>/">@<?php print $instagrams[1]->instagram_user; ?></a></cite>
-		</div>
-	    </div>
-	    <div class="item twitter">
-		<header class="item-title">
-		    <h6>Twitter</h6>
-		</header>
-		<div class="item-content">
-		    <em><?php print $tweets[2]->tweet; ?></em>
-		    <cite>&mdash; <a href="https://twitter.com/<?php print $tweets[2]->user_name; ?>" target="_blank">@<?php print $tweets[2]->user_name; ?></a></cite>
-		</div>
-	    </div>
-	    <div class="item instagram last">
-		<header class="item-title">
-		    <h6>Instagram</h6>
-		</header>
-		<div class="item-content">
-		    <a target="_blank" href="<?php print $instagrams[2]->instagram_link; ?>"><img alt="Photo Title" height="150" src="<?php print $instagrams[2]->thumbnail; ?>" width="150" /></a>
-		    <cite>&mdash; <a target="_blank" href="http://instagram.com/<?php print $instagrams[2]->instagram_user; ?>/">@<?php print $instagrams[2]->instagram_user; ?></a></cite>
-		</div>
-	    </div>
-	</div>
-
-	<?php
-	
-}
-
 
 function stripslashes_deep($value) {
   $value = is_array($value) ?
@@ -271,14 +163,14 @@ function stripslashes_deep($value) {
 //between value and input the array key will be returned
 function input_filter($input, $filter_array){
 echo "Input Filter, input: $input\n";
-	foreach ($filter_array as $key=>$value){
-		echo "Key: $key, Value: $value\n";
-		if($input == $key){
-			echo "Found key $key\n";
-			//return key of filter array that matches input
-			return $key;
-		}
-	}
+  foreach ($filter_array as $key=>$value){
+    echo "Key: $key, Value: $value\n";
+    if($input == $key){
+      echo "Found key $key\n";
+      //return key of filter array that matches input
+      return $key;
+    }
+  }
 }
 
 //Enter query to make CURL request to API
@@ -296,9 +188,9 @@ function api_call($query){
 
 function social_feed_cron() {
 
-  $access_token = '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa';
+  $access_token = variable_get('social_feed_api_key', '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa');
 
-  $tag = "rmcad";
+  $tag = variable_get('social_feed_search_tag');
 
   $table = 'social_instagram';
   $instagram_query = "https://api.instagram.com/v1/tags/$tag/media/recent?access_token=$access_token";
@@ -332,6 +224,7 @@ function social_feed_cron() {
           'instagram_id' => $feed->id,
           'instagram_link' => $feed->link,
           'instagram_user' => $feed->user->username,
+          'approve' => variable_get('social_feed_auto_publish'),
         );
 
         //Insert data into table
@@ -371,6 +264,20 @@ function social_feed_settings() {
     '#type' => 'checkbox',
     '#title' => t('Auto-publish new photos'),
     '#default_value' => variable_get('social_feed_auto_publish', ''),
+  );
+  $form['social_feed_search_user'] = array(
+    '#type' => 'textfield',
+    '#title' => t('User account to poll'),
+    '#default_value' => variable_get('social_feed_search_user', ''),
+    '#size' => 60,
+    '#maxlength' => 255,
+  );
+  $form['social_feed_search_tag'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Hashtag to search'),
+    '#default_value' => variable_get('social_feed_search_tag', ''),
+    '#size' => 60,
+    '#maxlength' => 255,
   );
 
   return system_settings_form($form);
