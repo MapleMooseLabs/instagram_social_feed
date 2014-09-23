@@ -52,10 +52,12 @@ function social_feed_permission() {
 function social_overview() {
 
   global $user;
-  if($user->uid < 1) {
+  if (user_access('administer social_feed settings') != TRUE) {
     drupal_access_denied();
     exit();
   }
+
+  drupal_add_js(drupal_get_path('module', 'social_feed') . '/js/social_feed.js');
 
   $sql = "SELECT * from social_instagram ORDER BY instagram_id DESC";
   $result = db_query($sql); ?>
@@ -75,16 +77,6 @@ function social_overview() {
 
   <?php endforeach; ?>
   </div>
-
-  <script type="text/javascript" src="/misc/jquery.js?v=1.4.4"></script>
-  <script type="text/javascript">
-
-    function approve(id) {
-      jQuery.get('/ajax/social_approve' + id);
-    }
-
-  </script>
-
 
   <?php
 }
