@@ -1,6 +1,21 @@
 <?php
 
 /**
+ * @file
+ * Defines table schema and update hooks.
+ */
+
+/**
+ * Updates tags column to account for longer data.
+ */
+function social_feed_update_7100() {
+  db_change_field('social_instagram', 'tags', 'tags', array(
+    'type' => 'text',
+  ));
+}
+
+
+/**
  * Implements hook_schema().
  */
 function social_feed_schema() {

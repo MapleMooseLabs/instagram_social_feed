@@ -5,7 +5,6 @@
  * Defines all hooks and helper functions.
  */
 
-
 /**
 * Implementation of hook_menu()
 */
@@ -14,8 +13,7 @@ function social_feed_menu() {
   $items['admin/config/services/social_feed'] = array(
     'title' => 'Social Aggregator',
     'description' => 'Approve new items for site display',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('social_feed_admin'),
+    'page callback' => 'social_overview',
     'access arguments' => array('access administration pages'),
     'type' => MENU_NORMAL_ITEM,
   );
@@ -60,25 +58,36 @@ function social_overview() {
   drupal_add_js(drupal_get_path('module', 'social_feed') . '/js/social_feed.js');
 
   $sql = "SELECT * from social_instagram ORDER BY instagram_id DESC";
-  $result = db_query($sql); ?>
+  $result = db_query($sql);
 
-  <div style="display:block; float:left; width:40%;">
+  $header = array('Thumbnail', 'User', 'Caption', 'Timestamp', 'Publish?');
 
-  <?php
-  foreach($result as $row): 
-    $time = date('Y-m-d g:i a', $row->time);
-  ?>
-    <div style="display:block; float:left; margin:10px; ">
-    <a href="<?php print $row->instagram_link; ?>" target="_blank"><img src="<?php print $row->thumbnail; ?>" /></a><br>
+  $rows = array();
+  foreach($result as $row) {
 
-    <input type="checkbox" onclick="approve('?instagram_id=<?php print $row->instagram_id; ?>')" <?php if($row->approve == "1"): ?> checked="checked" <?php endif; ?> />
-    <b><?php print $row->instagram_user; ?></b><br> <?php print $time; ?>
-    </div>
+    $image_html = '<img src="' . $row->thumbnail . '" />';
+    $checkbox_html = '<input type="checkbox" ' . ($row->approve == "1") ? 'checked="checked"' : '';
 
-  <?php endforeach; ?>
-  </div>
+    $rows[] = array(
+      l($image_html, $row->instagram_link, array('html' => TRUE, 'attributes' => array('target'=>'_blank'))),
+      $row->instagram_user,
+      $row->caption,
+      date('Y-m-d g:i a', $row->time),
+      'checkbox',
+    );
+  }
 
-  <?php
+  $variables = array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array(),
+    'caption' => 'Instagram Photos',
+    'colgroups' => array(),
+    'sticky' => FALSE,
+    'empty' => 'No photos yet',
+  );
+  return theme_table($variables);
+
 }
 
 function social_feed_approve($id) {
@@ -98,7 +107,7 @@ function social_feed_approve($id) {
     header("HTTP/1.1 500 Internal Server Error");
     exit();
   }
-  
+
   $sql = "UPDATE $table SET approve = IF(approve=1, 0, 1); WHERE $column = $id LIMIT 1";
   $result = db_update($table)
     ->expression(
@@ -107,28 +116,16 @@ function social_feed_approve($id) {
     ->condition(
       $column, $id
     )
-    ->execute(); 
-  
+    ->execute();
+
 
 }
 
 function social_feed_admin() {
 
-  ob_start();
   social_overview();
   $output = ob_get_clean();
-
   $form = array();
-
-  /*$form['onthisdate_maxdisp'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Maximum number of links'),
-    '#default_value' => variable_get('onthisdate_maxdisp', 3),
-    '#size' => 2,
-    '#maxlength' => 2,
-    '#description' => t("The maximum number of links to display in the block."),
-    '#required' => TRUE,
-  );*/
 
   $form['iframecontent'] = array(
   '#markup' => $output,
@@ -138,7 +135,7 @@ function social_feed_admin() {
 
   unset($form['#submit']);
   unset($form['actions']);
-  
+
   return $form;
 
 }
