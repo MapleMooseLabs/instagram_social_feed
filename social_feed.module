@@ -47,6 +47,9 @@ function social_feed_permission() {
   );
 }
 
+/**
+ * Callback function for Instagram display table.
+ */
 function social_overview() {
 
   global $user;
@@ -63,7 +66,7 @@ function social_overview() {
   $header = array('Thumbnail', 'User', 'Caption', 'Timestamp', 'Publish?');
 
   $rows = array();
-  foreach($result as $row) {
+  foreach ($result as $row) {
 
     $image_html = '<img src="' . $row->thumbnail . '" data-approved="' . $row->approve . '" />';
 
@@ -89,6 +92,9 @@ function social_overview() {
 
 }
 
+/**
+ * AJAX callback for approving individual photos.
+ */
 function social_feed_approve($id) {
 
   $table = "";
@@ -115,48 +121,9 @@ function social_feed_approve($id) {
 
 }
 
-function social_feed_admin() {
-
-  social_overview();
-  $output = ob_get_clean();
-  $form = array();
-
-  $form['iframecontent'] = array(
-  '#markup' => $output,
-  );
-
-  $form = system_settings_form($form);
-
-  unset($form['#submit']);
-  unset($form['actions']);
-
-  return $form;
-
-}
-
-function stripslashes_deep($value) {
-  $value = is_array($value) ?
-    array_map('stripslashes_deep', $value) :
-    stripslashes($value);
-
-  return $value;
-}
-
-//Take input POST value and run against array. If there is a match
-//between value and input the array key will be returned
-function input_filter($input, $filter_array){
-echo "Input Filter, input: $input\n";
-  foreach ($filter_array as $key=>$value){
-    echo "Key: $key, Value: $value\n";
-    if($input == $key){
-      echo "Found key $key\n";
-      //return key of filter array that matches input
-      return $key;
-    }
-  }
-}
-
-//Enter query to make CURL request to API
+/**
+ * Send query to make CURL request to API.
+ */
 function api_call($query){
   $curl = curl_init();
   curl_setopt($curl, CURLOPT_URL, $query);
@@ -169,6 +136,9 @@ function api_call($query){
   return $result;
 }
 
+/**
+ * Implements hook_cron().
+ */
 function social_feed_cron() {
 
   $access_token = variable_get('social_feed_api_key', '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa');
@@ -180,20 +150,16 @@ function social_feed_cron() {
 
   $instagram_feed = json_decode(api_call($instagram_query));
 
-   echo "<pre style='font-size:14px;'>";
-   var_dump($instagram_feed);
-   echo "</pre>";
-
-   foreach($instagram_feed->data as $feed){
-     //Check if instagram photo already exists based on unix timestamp
+   foreach ($instagram_feed->data as $feed){
+     // Check if instagram photo already exists based on unix timestamp.
      $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
      $result = db_query($sql);
      $count = $result->rowCount();
 
-     //Comma deliminate hashtag array and return as string
+     // Comma deliminate hashtag array and return as string.
      $tags = implode(",", $feed->tags);
 
-      //If no duplicate time entries proceed
+      // If no duplicate time entries proceed.
       if($count < 1){
         $data = array(
           'user_id' => $feed->user->id,
@@ -210,7 +176,7 @@ function social_feed_cron() {
           'approve' => variable_get('social_feed_auto_publish'),
         );
 
-        //Insert data into table
+        // Insert data into table.
         $result = db_insert($table)->fields($data)->execute();
 
         $post = array(
@@ -227,8 +193,7 @@ function social_feed_cron() {
 }
 
 /**
- * Callback function for providing settings form
- * to edit recipients of email alerts.
+ * Callback function for settings form.
  */
 function social_feed_settings() {
 
