@@ -71,7 +71,7 @@ function social_overview() {
     $image_html = '<img src="' . $row->thumbnail . '" data-approved="' . $row->approve . '" />';
 
     $rows[] = array(
-      l($image_html, $row->instagram_link, array('html' => TRUE, 'attributes' => array('target'=>'_blank'))),
+      l($image_html, $row->instagram_link, array('html' => TRUE, 'attributes' => array('target' => '_blank'))),
       $row->instagram_user,
       $row->caption,
       date('Y-m-d g:i a', $row->time),
@@ -124,11 +124,11 @@ function social_feed_approve($id) {
 /**
  * Send query to make CURL request to API.
  */
-function api_call($query){
+function api_call($query) {
   $curl = curl_init();
   curl_setopt($curl, CURLOPT_URL, $query);
   curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-  curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+  curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
   curl_setopt($curl, CURLOPT_TIMEOUT, 20);
   $result= curl_exec($curl);
   curl_close($curl);
@@ -150,7 +150,7 @@ function social_feed_cron() {
 
   $instagram_feed = json_decode(api_call($instagram_query));
 
-   foreach ($instagram_feed->data as $feed){
+   foreach ($instagram_feed->data as $feed) {
      // Check if instagram photo already exists based on unix timestamp.
      $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
      $result = db_query($sql);
@@ -160,12 +160,12 @@ function social_feed_cron() {
      $tags = implode(",", $feed->tags);
 
       // If no duplicate time entries proceed.
-      if($count < 1){
+      if ($count < 1) {
         $data = array(
           'user_id' => $feed->user->id,
           'tags' => $tags,
-          //Time stored in unix epoch format
-          'time'=>$feed->created_time,
+          // Time stored in unix epoch format.
+          'time' => $feed->created_time,
           'low_resolution' => $feed->images->low_resolution->url,
           'thumbnail' => $feed->images->thumbnail->url,
           'standard_resolution' => $feed->images->standard_resolution->url,
@@ -182,7 +182,7 @@ function social_feed_cron() {
         $post = array(
           'post_author'    => 1,
           'post_content'   => $data['caption'],
-          'post_name'      => 'instagram_'.$data->time,
+          'post_name'      => 'instagram_' . $data->time,
           'post_parent'    => 0,
           'post_status'    => 'publish',
           'post_title'     => $data['caption'],
