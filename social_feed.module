@@ -65,15 +65,14 @@ function social_overview() {
   $rows = array();
   foreach($result as $row) {
 
-    $image_html = '<img src="' . $row->thumbnail . '" />';
-    $checkbox_html = '<input type="checkbox" ' . ($row->approve == "1") ? 'checked="checked"' : '';
+    $image_html = '<img src="' . $row->thumbnail . '" data-approved="' . $row->approve . '" />';
 
     $rows[] = array(
       l($image_html, $row->instagram_link, array('html' => TRUE, 'attributes' => array('target'=>'_blank'))),
       $row->instagram_user,
       $row->caption,
       date('Y-m-d g:i a', $row->time),
-      'checkbox',
+      $row->instagram_id,
     );
   }
 
@@ -95,20 +94,16 @@ function social_feed_approve($id) {
   $table = "";
   $column = "";
 
-  if(isset($_GET['twitter_id'])) {
-    $id = $_GET['twitter_id'];
-    $table = "social_twitter";
-    $column = "twitter_id";
-  } else if(isset($_GET['instagram_id'])) {
+  if (isset($_GET['instagram_id'])) {
     $id = $_GET['instagram_id'];
     $table = "social_instagram";
     $column = "instagram_id";
-  } else {
+  }
+  else {
     header("HTTP/1.1 500 Internal Server Error");
     exit();
   }
 
-  $sql = "UPDATE $table SET approve = IF(approve=1, 0, 1); WHERE $column = $id LIMIT 1";
   $result = db_update($table)
     ->expression(
       'approve', 'IF(approve=1, 0, 1)'
@@ -117,7 +112,6 @@ function social_feed_approve($id) {
       $column, $id
     )
     ->execute();
-
 
 }
 
