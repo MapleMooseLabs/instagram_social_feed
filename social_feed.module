@@ -225,3 +225,55 @@ function social_feed_settings() {
   return system_settings_form($form);
 
 }
+
+/**
+ * Implements hook_block_info().
+ *
+ * This hook declares what blocks are provided by the module.
+ */
+function social_feed_block_info() {
+  $blocks['social_feed_block'] = array(
+    'info' => t('Social feed block'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function social_feed_block_view($delta = '') {
+  switch ($delta) {
+    case 'social_feed_block':
+      $block['subject'] = t('Instagram Social Feed');
+      $block['content'] = social_feed_contents($delta);
+      break;
+  }
+  return $block;
+}
+
+/**
+ * A module-defined block content function.
+ */
+function social_feed_contents($which_block) {
+  switch ($which_block) {
+    case 'social_feed_block':
+
+      $result = db_query("SELECT * FROM social_instagram ORDER BY id DESC LIMIT 6");
+      $html = '';
+
+      foreach ($result as $row) {
+        $html .= '<a href="' . $row->instagram_link . '">';
+        $html .= '<img src="' . $row->thumbnail . '" />';
+        $html .= '</a>';
+      }
+
+      $output = array(
+        '#markup' => $html
+      );
+
+      return $output;
+  }
+}
