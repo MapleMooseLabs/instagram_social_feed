@@ -14,7 +14,7 @@ function social_feed_menu() {
     'title' => 'Social Aggregator',
     'description' => 'Approve new items for site display',
     'page callback' => 'social_overview',
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer social_feed settings'),
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -51,12 +51,6 @@ function social_feed_permission() {
  * Callback function for Instagram display table.
  */
 function social_overview() {
-
-  global $user;
-  if (user_access('administer social_feed settings') != TRUE) {
-    drupal_access_denied();
-    exit();
-  }
 
   drupal_add_js(drupal_get_path('module', 'social_feed') . '/js/social_feed.js');
 
