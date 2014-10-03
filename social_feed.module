@@ -138,13 +138,18 @@ function social_feed_cron() {
   $access_token = variable_get('social_feed_api_key', '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa');
 
   $text = variable_get('social_feed_search_tag', 'nofilter');
-  $type = variable_get('social_feed_search_tag', 'Hashtag')
+  $text = str_replace('#', '', $text);
+  $type = variable_get('social_feed_search_type', 'Hashtag');
 
-  if ($type == "Hashtag") {
+  if ($type == 1) {
+    // Hashtag search.
+    drupal_set_message("Instagram feed: hashtag $text");
     $instagram_query = "https://api.instagram.com/v1/tags/$text/media/recent?access_token=$access_token";
   }
   else {
-    $instagram_query = "https://api.instagram.com/v1/tags/$text/media/recent?access_token=$access_token";
+    // User feed.
+    drupal_set_message("Instagram feed: user feed");
+    $instagram_query = "https://api.instagram.com/v1/users/self/feed?access_token=$access_token";
   }
 
   $instagram_feed = json_decode(api_call($instagram_query));
@@ -215,16 +220,16 @@ function social_feed_settings() {
   );
   $form['social_feed_search_type'] = array(
     '#type' => 'radios',
-    '#title' => t('Search type'),
+    '#title' => t('Instagram Feed Source'),
     '#default_value' => variable_get('social_feed_search_type', ''),
     '#options' => array(
-      'User',
-      'Hashtag',
+      0 => t('User Feed'),
+      1 => t('Hashtag'),
     ),
   );
   $form['social_feed_search_tag'] = array(
     '#type' => 'textfield',
-    '#title' => t('Search term'),
+    '#title' => t('Search term (if using hashtag)'),
     '#default_value' => variable_get('social_feed_search_tag', ''),
     '#size' => 60,
     '#maxlength' => 255,
