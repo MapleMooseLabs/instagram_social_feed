@@ -5,6 +5,9 @@
  * Defines all hooks and helper functions.
  */
 
+// Set constant for requesting new data (5 min).
+define('SOCIAL_FEED_CACHE_TIMEOUT', 5 * 60);
+
 /**
 * Implementation of hook_menu()
 */
@@ -204,7 +207,7 @@ function social_feed_cron() {
           'user_id' => $feed->user->id,
           'tags' => $tags,
           // Time stored in unix epoch format.
-          'time' => $feed->created_time,
+          'time' => REQUEST_TIME,
           'low_resolution' => $feed->images->low_resolution->url,
           'thumbnail' => $feed->images->thumbnail->url,
           'standard_resolution' => $feed->images->standard_resolution->url,
@@ -386,6 +389,16 @@ function social_feed_block_view($delta = '') {
 function social_feed_contents($which_block) {
   switch ($which_block) {
     case 'social_feed_block':
+
+      // Check if new data should be requested.
+      $result = db_query("SELECT time FROM social_instagram ORDER BY id DESC LIMIT 1");
+      foreach ($result as $row) {
+        $time = $row->time;
+      }
+
+      if ((REQUEST_TIME - $time) > SOCIAL_FEED_CACHE_TIMEOUT) {
+        social_feed_cron();
+      }
 
       $result = db_query("SELECT * FROM social_instagram ORDER BY id DESC LIMIT 6");
       $html = '';
