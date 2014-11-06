@@ -337,6 +337,13 @@ function social_feed_settings() {
       '#size' => 60,
       '#maxlength' => 255,
     );
+    $form['social_feed_block_count'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Number of photos to display in the block'),
+      '#default_value' => variable_get('social_feed_block_count', ''),
+      '#size' => 60,
+      '#maxlength' => 255,
+    );
     $form['social_feed_search_type'] = array(
       '#type' => 'radios',
       '#title' => t('Instagram Feed Source'),
@@ -411,7 +418,10 @@ function social_feed_contents($which_block) {
 
       }
 
-      $result = db_query("SELECT * FROM social_instagram ORDER BY id DESC LIMIT 6");
+      $limit = variable_get('social_feed_block_count', 6);
+      $limit = intval($limit);
+
+      $result = db_query("SELECT * FROM {social_instagram} ORDER BY id DESC LIMIT " . $limit);
       $html = '';
 
       foreach ($result as $row) {
