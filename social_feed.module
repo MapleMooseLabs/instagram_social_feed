@@ -169,7 +169,7 @@ function social_feed_cron() {
     $instagram_query = "https://api.instagram.com/v1/tags/$text/media/recent?access_token=$access_token";
     $text = "Instagram feed: hashtag " . $text;
   }
-  else if ($type == 0) {
+  elseif ($type == 0) {
     // User feed.
     $instagram_query = "https://api.instagram.com/v1/users/self/feed?access_token=$access_token";
     $text = "Instagram feed: user feed";
@@ -248,7 +248,7 @@ function social_feed_settings() {
       "code" => $_GET['code'],
     );
 
-    foreach ($fields as $key=>$value) {
+    foreach ($fields as $key => $value) {
       $fields_string .= $key . '=' . $value . '&';
     }
     rtrim($fields_string, '&');
@@ -257,8 +257,8 @@ function social_feed_settings() {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch,CURLOPT_POST, count($fields));
-    curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+    curl_setopt($ch, CURLOPT_POST, count($fields));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
 
     $output = curl_exec($ch);
     curl_close($ch);
@@ -461,7 +461,7 @@ function social_status() {
     // Hashtag search.
     $text = "hashtag " . $text;
   }
-  else if ($type == 0) {
+  elseif ($type == 0) {
     // User feed.
     $text = "user feed";
   }
