@@ -14,6 +14,25 @@ function social_feed_update_7100() {
   ));
 }
 
+/**
+ * Implements hook_uninstall().
+ */
+function social_feed_uninstall() {
+  // API data.
+  variable_del('social_feed_api_key');
+  variable_del('social_feed_user_id');
+  variable_del('social_feed_username');
+  // Client setup data.
+  variable_del('social_feed_client_secret');
+  variable_del('social_feed_redirect_uri');
+  variable_del('social_feed_client_id');
+  // Publishing information.
+  variable_del('social_feed_auto_publish');
+  variable_del('social_feed_passive_timeout');
+  variable_del('social_feed_block_count');
+  variable_del('social_feed_search_type');
+  variable_del('social_feed_search_tag');
+}
 
 /**
  * Implements hook_schema().
