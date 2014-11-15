@@ -416,32 +416,34 @@ function social_feed_contents($which_block) {
 
       // Check if new data should be requested.
       if ($timeout > 0) {
-
-        $result = db_query("SELECT time FROM social_instagram ORDER BY id DESC LIMIT 1");
-        foreach ($result as $row) {
-          $time = $row->time;
-        }
-
+        $time = variable_get('social_feed_last_run', time());
         if ((REQUEST_TIME - $time) > $timeout) {
           social_feed_cron();
         }
-
       }
 
-      $limit = variable_get('social_feed_block_count', 6);
+      $query = db_select('social_instagram', 's')
+        ->fields('s')
+        ->condition('approve', 1)
+        ->orderBy('id');
+
+      $limit = variable_get('social_feed_block_count', 0);
       $limit = intval($limit);
+      if ($limit) {
+        $query->range(0, $limit);
+      }
 
-      $result = db_query("SELECT * FROM {social_instagram} ORDER BY id DESC LIMIT " . $limit);
+      $results = $query->execute();
+
       $html = '';
-
-      foreach ($result as $row) {
-        $html .= '<a href="' . $row->instagram_link . '">';
-        $html .= '<img src="' . $row->thumbnail . '" />';
+      while ($row = $results->fetchAssoc()) {
+        $html .= '<a href="' . $row['instagram_link'] . '">';
+        $html .= '<img src="' . $row['thumbnail'] . '" />';
         $html .= '</a>';
       }
 
       $output = array(
-        '#markup' => $html
+        '#markup' => $html,
       );
 
       return $output;
