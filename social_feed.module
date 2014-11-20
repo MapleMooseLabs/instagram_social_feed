@@ -283,6 +283,7 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_client_id', ''),
       '#size' => 60,
       '#maxlength' => 255,
+      '#description' => t('You must register an Instagram client key to use this module. You can register a client by <a href="http://instagram.com/developer/clients/manage/" target="_blank">clicking here</a>.'),
     );
     $form['social_feed_client_secret'] = array(
       '#type' => 'textfield',
@@ -290,6 +291,7 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_client_secret', ''),
       '#size' => 60,
       '#maxlength' => 255,
+      '#description' => 'The client secret can be found after creating an Instagram client in the API console.',
     );
     $form['social_feed_redirect_uri'] = array(
       '#type' => 'textfield',
@@ -297,21 +299,13 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_redirect_uri', ''),
       '#size' => 60,
       '#maxlength' => 255,
+      '#description' => 'Set the redirect URI to http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'],
     );
 
     if (variable_get('social_feed_client_id', '') != '' && variable_get('social_feed_redirect_uri', '') != '') {
       $form['authenticate'] = array(
         '#markup' => l('Click here to authenticate via Instagram and create an access token',
           'https://api.instagram.com/oauth/authorize/?client_id=' . variable_get('social_feed_client_id') . '&redirect_uri=' . variable_get('social_feed_redirect_uri') . '&response_type=code'
-        )
-      );
-    }
-    else {
-      $form['authenticate'] = array(
-        '#markup' => l('Click here to set up manage Instagram API clients',
-          'http://instagram.com/developer/clients/manage/', array('attributes' => array(
-            'target' => '_blank')
-          )
         )
       );
     }
@@ -326,6 +320,7 @@ function social_feed_settings() {
       '#size' => 60,
       '#maxlength' => 255,
       '#disabled' => TRUE,
+      '#description' => 'Stored access key for accessing the API key',
     );
     $form['authenticate'] = array(
       '#markup' => l('Click here to remove the access key and re-authenticate via Instgram',
@@ -334,6 +329,9 @@ function social_feed_settings() {
         )
       )
     );
+    $form['spacer'] = array(
+      '#markup' => '<p></p>',
+    );
     $form['social_feed_auto_publish'] = array(
       '#type' => 'checkbox',
       '#title' => t('Auto-publish new photos'),
@@ -341,17 +339,19 @@ function social_feed_settings() {
     );
     $form['social_feed_passive_timeout'] = array(
       '#type' => 'textfield',
-      '#title' => t('Cache timeout in minutes for refresh'),
+      '#title' => t('Minimum Cache Timeout'),
       '#default_value' => variable_get('social_feed_passive_timeout', ''),
       '#size' => 60,
       '#maxlength' => 255,
+      '#description' => 'Timeout in minutes before the site will request new data from Instagram',
     );
     $form['social_feed_block_count'] = array(
       '#type' => 'textfield',
-      '#title' => t('Number of photos to display in the block'),
+      '#title' => t('Number of Photos'),
       '#default_value' => variable_get('social_feed_block_count', ''),
       '#size' => 60,
       '#maxlength' => 255,
+      '#description' => 'Determines number of photos that display in the block this module provides',
     );
     $form['social_feed_search_type'] = array(
       '#type' => 'radios',
@@ -369,6 +369,7 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_search_tag', ''),
       '#size' => 60,
       '#maxlength' => 255,
+      '#description' => 'Exclude the preceding the # (hashtag), leave blank if not searching by hashtag',
     );
   }
 
