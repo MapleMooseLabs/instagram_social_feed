@@ -408,7 +408,7 @@ function social_feed_block_view($delta = '') {
 /**
  * A module-defined block content function.
  */
-function social_feed_contents($which_block) {
+function social_feed_contents($which_block, $panel_count = NULL) {
   switch ($which_block) {
     case 'social_feed_block':
 
@@ -428,7 +428,12 @@ function social_feed_contents($which_block) {
         ->condition('approve', 1)
         ->orderBy('id');
 
-      $limit = variable_get('social_feed_block_count', 0);
+      if ($panel_count) {
+        $limit = $panel_count;
+      }
+      else {
+        $limit = variable_get('social_feed_block_count', 0);
+      }
       $limit = intval($limit);
       if ($limit) {
         $query->range(0, $limit);
@@ -449,6 +454,16 @@ function social_feed_contents($which_block) {
 
       return $output;
   }
+}
+
+
+/**
+ * Generate content for the custom panel pane.
+ */
+function social_feed_panel_pane_content($count = 6) {
+
+  $block = social_feed_contents('social_feed_block', $count);
+  return $block;
 }
 
 /**
@@ -501,4 +516,13 @@ function social_status() {
  */
 function social_status_submit($form, &$form_state) {
     social_feed_cron();
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function social_feed_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'plugins/content_types';
+  }
 }
