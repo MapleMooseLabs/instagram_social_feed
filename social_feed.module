@@ -5,9 +5,13 @@
  * Defines all hooks and helper functions.
  */
 
+define('SOCIAL_FEED_USER_FEED', 0);
+define('SOCIAL_FEED_HASHTAG', 1);
+define('SOCIAL_FEED_USER_PHOTOS', 2);
+
 /**
-* Implementation of hook_menu()
-*/
+ * Implements hook_menu().
+ */
 function social_feed_menu() {
 
   $items['admin/config/services/social_feed'] = array(
@@ -21,7 +25,7 @@ function social_feed_menu() {
   $items['admin/config/services/social_feed/tab1'] = array(
     'title' => 'Overview',
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10
+    'weight' => -10,
   );
 
   $items['admin/config/services/social_feed/settings'] = array(
@@ -66,15 +70,21 @@ function social_feed_permission() {
  */
 function social_overview() {
 
-  drupal_add_js(drupal_get_path('module', 'social_feed') . '/js/social_feed.js');
+  $api = variable_get('social_feed_api_key');
+  if (!$api) {
+    drupal_set_message('API Key not properly established. Please see the Manage Settings tab.', 'error');
+  }
 
-  $sql = "SELECT * from social_instagram ORDER BY instagram_id DESC";
-  $result = db_query($sql);
+  drupal_add_js(drupal_get_path('module', 'social_feed') . '/js/social_feed.js');
 
   $header = array('Thumbnail', 'User', 'Caption', 'Timestamp', 'Publish?');
 
+  $results = db_select('social_instagram', 's')
+    ->fields('s', array())
+    ->orderBy('instagram_id', 'DESC')
+    ->execute();
   $rows = array();
-  foreach ($result as $row) {
+  while ($row = $results->fetch()) {
 
     $image_html = '<img src="' . $row->thumbnail . '" data-approved="' . $row->approve . '" />';
 
@@ -82,16 +92,16 @@ function social_overview() {
       l($image_html, $row->instagram_link, array(
         'html' => TRUE,
         'attributes' => array(
-          'target' => '_blank')
+          'target' => '_blank'),
         )
       ),
       l($row->instagram_user, 'http://instagram.com/' . $row->instagram_user, array(
         'attributes' => array(
-          'target' => '_blank')
+          'target' => '_blank'),
         )
       ),
       truncate_utf8($row->caption, 80, FALSE, TRUE),
-      date('Y-m-d g:i a', $row->time),
+      date('Y-m-d g:i a', $row->created_time),
       $row->instagram_id,
     );
   }
@@ -112,28 +122,19 @@ function social_overview() {
 /**
  * AJAX callback for approving individual photos.
  */
-function social_feed_approve($id) {
-
-  $table = "";
-  $column = "";
+function social_feed_approve() {
 
   if (isset($_GET['instagram_id'])) {
     $id = $_GET['instagram_id'];
-    $table = "social_instagram";
-    $column = "instagram_id";
   }
   else {
     header("HTTP/1.1 500 Internal Server Error");
     exit();
   }
 
-  $result = db_update($table)
-    ->expression(
-      'approve', 'IF(approve=1, 0, 1)'
-    )
-    ->condition(
-      $column, $id
-    )
+  $result = db_update('social_instagram')
+    ->expression('approve', 'IF(approve=1, 0, 1)')
+    ->condition('instagram_id', $id)
     ->execute();
 
 }
@@ -147,7 +148,7 @@ function api_call($query) {
   curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
   curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
   curl_setopt($curl, CURLOPT_TIMEOUT, 20);
-  $result= curl_exec($curl);
+  $result = curl_exec($curl);
   curl_close($curl);
 
   return $result;
@@ -160,22 +161,22 @@ function social_feed_cron() {
 
   $access_token = variable_get('social_feed_api_key', '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa');
 
-  $text = variable_get('social_feed_search_tag', 'nofilter');
-  $text = str_replace('#', '', $text);
-  $type = variable_get('social_feed_search_type', 'Hashtag');
+  $type = variable_get('social_feed_search_type', 0);
 
-  if ($type == 1) {
-    // Hashtag search.
+  // Hashtag search.
+  if ($type == SOCIAL_FEED_HASHTAG) {
+    $text = variable_get('social_feed_search_tag', 'nofilter');
+    $text = str_replace('#', '', $text);
     $instagram_query = "https://api.instagram.com/v1/tags/$text/media/recent?access_token=$access_token";
     $text = "Instagram feed: hashtag " . $text;
   }
-  elseif ($type == 0) {
-    // User feed.
+  // User feed.
+  elseif ($type == SOCIAL_FEED_USER_FEED) {
     $instagram_query = "https://api.instagram.com/v1/users/self/feed?access_token=$access_token";
     $text = "Instagram feed: user feed";
   }
+  // User photos.
   else {
-    //User photos.
     $uid = variable_get('social_feed_user_id', 0);
     $instagram_query = "https://api.instagram.com/v1/users/" . $uid . "/media/recent?access_token=$access_token";
     $text = "Instagram feed: user's own photos";
@@ -186,49 +187,61 @@ function social_feed_cron() {
 
   $table = 'social_instagram';
   if (!isset($instagram_feed->data)) {
-    drupal_set_message($text . ' no items found.');
-    return;
+    return t('%text No items found.', array('%text' => $text));
   }
+
   foreach ($instagram_feed->data as $feed) {
-     // Check if instagram photo already exists based on unix timestamp.
-     $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
-     $result = db_query($sql);
-     $count = $result->rowCount();
+    // Check if instagram photo already exists based on unix timestamp.
+    $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
+    $result = db_query($sql);
+    $count = $result->rowCount();
+    if ($count) {
+      continue;
+    }
 
-     // Comma deliminate hashtag array and return as string.
-     $tags = implode(",", $feed->tags);
+    // Return tags as comma delimited string.
+    $tags = implode(',', $feed->tags);
 
-      // If no duplicate time entries proceed.
-      if ($count < 1) {
+    $caption = '';
+    if (isset($feed->caption->text)) {
+      $caption = utf8_encode($feed->caption->text);
+    }
 
-        $caption = '';
-        if (isset($feed->caption->text)) {
-          $caption = utf8_encode($feed->caption->text);
-        }
+    $data = array(
+      'user_id' => $feed->user->id,
+      'tags' => filter_xss($tags),
+      // Time stored in unix epoch format.
+      'created_time' => $feed->created_time,
+      'low_resolution' => $feed->images->low_resolution->url,
+      'thumbnail' => $feed->images->thumbnail->url,
+      'standard_resolution' => $feed->images->standard_resolution->url,
+      'caption' => filter_xss($caption),
+      'instagram_id' => $feed->id,
+      'instagram_link' => $feed->link,
+      'instagram_user' => $feed->user->username,
+      'approve' => variable_get('social_feed_auto_publish', 0),
+    );
 
-        $data = array(
-          'user_id' => $feed->user->id,
-          'tags' => $tags,
-          // Time stored in unix epoch format.
-          'time' => REQUEST_TIME,
-          'low_resolution' => $feed->images->low_resolution->url,
-          'thumbnail' => $feed->images->thumbnail->url,
-          'standard_resolution' => $feed->images->standard_resolution->url,
-          'caption' => $caption,
-          'instagram_id' => $feed->id,
-          'instagram_link' => $feed->link,
-          'instagram_user' => $feed->user->username,
-          'approve' => variable_get('social_feed_auto_publish'),
-        );
+    // Insert data into table.
+    $result = db_insert($table)->fields($data)->execute();
+    $total++;
+  }
 
-        // Insert data into table.
-        $result = db_insert($table)->fields($data)->execute();
-        $total++;
-      }
-   }
+  $message = t('%text %total items imported.', array(
+    '%text' => $text,
+    '%total' => $total,
+  ));
 
-   drupal_set_message($text . " " . $total . " items imported.");
+  // Set last run variable for passive updating.
+  variable_set('social_feed_last_run', time());
 
+  // Log the issue.
+  watchdog(__FUNCTION__, '%text %total items imported.', array(
+    '%text' => $text,
+    '%total' => $total,
+  ));
+
+  return $message;
 }
 
 /**
@@ -236,8 +249,9 @@ function social_feed_cron() {
  */
 function social_feed_settings() {
 
+  $access_key = variable_get('social_feed_api_key', '');
   // Access token request in process.
-  if (isset($_GET['code'])) {
+  if (isset($_GET['code']) && $access_key == '') {
 
     $url = "https://api.instagram.com/oauth/access_token";
     $fields = array(
@@ -248,6 +262,7 @@ function social_feed_settings() {
       "code" => $_GET['code'],
     );
 
+    $fields_string = '';
     foreach ($fields as $key => $value) {
       $fields_string .= $key . '=' . $value . '&';
     }
@@ -265,15 +280,18 @@ function social_feed_settings() {
 
     $auth = json_decode($output);
 
-    variable_set('social_feed_api_key', $auth->access_token);
-    variable_set('social_feed_user_id', $auth->user->id);
-    variable_set('social_feed_username', $auth->user->username);
+    if (empty($auth->error_message)) {
+      variable_set('social_feed_api_key', $auth->access_token);
+      variable_set('social_feed_user_id', $auth->user->id);
+      variable_set('social_feed_username', $auth->user->username);
+    }
+    else {
+      drupal_set_message($auth->error_message, 'error');
+    }
 
   }
 
   $form = array();
-
-  $access_key = variable_get('social_feed_api_key', '');
   if ($access_key == '') {
 
     // Non-authenticated settings form.
@@ -304,7 +322,7 @@ function social_feed_settings() {
 
     if (variable_get('social_feed_client_id', '') != '' && variable_get('social_feed_redirect_uri', '') != '') {
       $form['authenticate'] = array(
-        '#markup' => l('Click here to authenticate via Instagram and create an access token',
+        '#markup' => l(t('Click here to authenticate via Instagram and create an access token'),
           'https://api.instagram.com/oauth/authorize/?client_id=' . variable_get('social_feed_client_id') . '&redirect_uri=' . variable_get('social_feed_redirect_uri') . '&response_type=code'
         )
       );
@@ -323,11 +341,11 @@ function social_feed_settings() {
       '#description' => 'Stored access key for accessing the API key',
     );
     $form['authenticate'] = array(
-      '#markup' => l('Click here to remove the access key and re-authenticate via Instgram',
+      '#markup' => l(t('Click here to remove the access key and re-authenticate via Instgram'),
         'admin/config/services/social_feed/settings/', array(
-          'query' => array('code' => '')
+          'query' => array('code' => ''),
         )
-      )
+      ),
     );
     $form['spacer'] = array(
       '#markup' => '<p></p>',
@@ -348,7 +366,7 @@ function social_feed_settings() {
     $form['social_feed_block_count'] = array(
       '#type' => 'textfield',
       '#title' => t('Number of Photos'),
-      '#default_value' => variable_get('social_feed_block_count', ''),
+      '#default_value' => variable_get('social_feed_block_count', '0'),
       '#size' => 60,
       '#maxlength' => 255,
       '#description' => 'Determines number of photos that display in the block this module provides',
@@ -356,11 +374,11 @@ function social_feed_settings() {
     $form['social_feed_search_type'] = array(
       '#type' => 'radios',
       '#title' => t('Instagram Feed Source'),
-      '#default_value' => variable_get('social_feed_search_type', ''),
+      '#default_value' => variable_get('social_feed_search_type', '0'),
       '#options' => array(
-        0 => t('User Feed'),
-        1 => t('Hashtag'),
-        2 => t("User's Own Photos"),
+        SOCIAL_FEED_USER_FEED =>   t('User Feed'),
+        SOCIAL_FEED_HASHTAG =>     t('Hashtag'),
+        SOCIAL_FEED_USER_PHOTOS => t("User's Own Photos"),
       ),
     );
     $form['social_feed_search_tag'] = array(
@@ -371,6 +389,29 @@ function social_feed_settings() {
       '#maxlength' => 255,
       '#description' => 'Exclude the preceding the # (hashtag), leave blank if not searching by hashtag',
     );
+
+    $form['social_feed_more'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('More Link'),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      '#description' => t('Enter a URL and text to create a general link in the display. Leave Link URL blank to display none.'),
+    );
+    $form['social_feed_more']['social_feed_more_uri'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link URL'),
+      '#default_value' => variable_get('social_feed_more_uri', ''),
+      '#description' => t('Ex: http://instagram.com/mediacurrent.'),
+      '#size' => 60,
+      '#maxlength' => 255,
+    );
+    $form['social_feed_more']['social_feed_more_link'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link Text'),
+      '#default_value' => variable_get('social_feed_more_link', 'More'),
+      '#size' => 60,
+      '#maxlength' => 255,
+    );
   }
 
   return system_settings_form($form);
@@ -379,8 +420,6 @@ function social_feed_settings() {
 
 /**
  * Implements hook_block_info().
- *
- * This hook declares what blocks are provided by the module.
  */
 function social_feed_block_info() {
   $blocks['social_feed_block'] = array(
@@ -392,17 +431,48 @@ function social_feed_block_info() {
 
 /**
  * Implements hook_block_view().
- *
- * This hook generates the contents of the blocks themselves.
  */
 function social_feed_block_view($delta = '') {
   switch ($delta) {
     case 'social_feed_block':
       $block['subject'] = t('Instagram Social Feed');
       $block['content'] = social_feed_contents($delta);
-      break;
+      return $block;
   }
-  return $block;
+}
+
+
+/**
+ * Public function to get Instagram infomration from the database.
+ *
+ * @return DatabaseStatementInterface|null
+ *   Database results.
+ */
+function social_feed_get_contents() {
+  $timeout = variable_get('social_feed_passive_timeout', '');
+  $timeout = intval($timeout) * 60;
+
+  // Check if new data should be requested.
+  if ($timeout > 0) {
+    $time = variable_get('social_feed_last_run', time());
+    if ((REQUEST_TIME - $time) > $timeout) {
+      social_feed_cron();
+    }
+  }
+
+  $query = db_select('social_instagram', 's')
+    ->fields('s')
+    ->condition('approve', 1)
+    ->orderBy('created_time', 'DESC');
+
+  $limit = variable_get('social_feed_block_count', 0);
+  $limit = intval($limit);
+  if ($limit) {
+    $query->range(0, $limit);
+  }
+
+  $results = $query->execute();
+  return $results;
 }
 
 /**
@@ -412,44 +482,47 @@ function social_feed_contents($which_block, $panel_count = NULL) {
   switch ($which_block) {
     case 'social_feed_block':
 
-      $timeout = variable_get('social_feed_passive_timeout', '');
-      $timeout = intval($timeout) * 60;
-
-      // Check if new data should be requested.
-      if ($timeout > 0) {
-        $time = variable_get('social_feed_last_run', time());
-        if ((REQUEST_TIME - $time) > $timeout) {
-          social_feed_cron();
-        }
-      }
-
-      $query = db_select('social_instagram', 's')
-        ->fields('s')
-        ->condition('approve', 1)
-        ->orderBy('id');
-
-      if ($panel_count) {
-        $limit = $panel_count;
-      }
-      else {
-        $limit = variable_get('social_feed_block_count', 0);
-      }
-      $limit = intval($limit);
-      if ($limit) {
-        $query->range(0, $limit);
-      }
-
-      $results = $query->execute();
-
-      $html = '';
+      $results = social_feed_get_contents();
+      $count = 1;
+      $total = $results->rowCount();
+      $html = array();
+      $html[] = '<div class="instagram-social-feed">';
+      $html[] = '<ul class="clearfix">';
       while ($row = $results->fetchAssoc()) {
-        $html .= '<a href="' . $row['instagram_link'] . '">';
-        $html .= '<img src="' . $row['thumbnail'] . '" />';
-        $html .= '</a>';
+        $classes = array(
+          'social-feed-item',
+          'social-feed-item-' . $count,
+        );
+        if ($count % 2 == 0) {
+          $classes[] = 'social-feed-item-even';
+        }
+        else {
+          $classes[] = 'social-feed-item-odd';
+        }
+        if ($count == 1) {
+          $classes[] = 'social-feed-item-first';
+        }
+        if ($count == $total) {
+          $classes[] = 'social-feed-item-last';
+        }
+        $html[] = '<li class="' . implode(' ', $classes) . '">';
+        $html[] = '<a href="' . $row['instagram_link'] . '" target="_blank">';
+        $html[] = '<img src="' . $row['low_resolution'];
+        $html[] = '" width="180" height="180" alt="' . $row['caption'] . '" />';
+        $html[] = '</a>';
+        $html[] = '</li>';
+        $count++;
+        }
+      $html[] = '</ul>';
+      $link_uri = variable_get('social_feed_more_uri', '');
+      if ($link_uri != '') {
+        $link_txt = variable_get('social_feed_more_text', 'More');
+        $html[] = l($link_txt, $link_uri, array('attributes' => array('class' => array('social-feed-link'))));
       }
+      $html[] = '</div>';
 
       $output = array(
-        '#markup' => $html,
+       '#markup' => implode('', $html),
       );
 
       return $output;
@@ -471,34 +544,42 @@ function social_feed_panel_pane_content($count = 6) {
  */
 function social_status() {
 
-  $text = variable_get('social_feed_search_tag', 'nofilter');
-  $text = str_replace('#', '', $text);
-  $type = variable_get('social_feed_search_type', 'Hashtag');
+  $type = variable_get('social_feed_search_type', 0);
 
-  if ($type == 1) {
-    // Hashtag search.
+  // Hashtag search.
+  if ($type == SOCIAL_FEED_HASHTAG) {
+    $text = variable_get('social_feed_search_tag', 'nofilter');
+    $text = str_replace('#', '', $text);
     $text = "hashtag " . $text;
   }
-  elseif ($type == 0) {
-    // User feed.
+  // User feed.
+  elseif ($type == SOCIAL_FEED_USER_FEED) {
     $text = "user feed";
   }
+  // User photos.
   else {
-    // User photos.
     $text = "user's own photos";
   }
 
-  $form = array();
+  $api = variable_get('social_feed_api_key');
+  if (!$api) {
+    drupal_set_message('API Key not properly established. Please see the Manage Settings tab.', 'error');
+  }
 
+  $message = array(
+    'This module is connected to the Instagram account: ',
+    variable_get('social_feed_username', ''),
+    '<br /><br />The feed is currently configured to pull new photos from: ',
+    $text,
+    '<br /><br />',
+    'New photos will be requested on each cron run. Make sure cron is configured to run regularly.',
+    '<br /><br />',
+    'To pull new photos manually, click Run below:<br /><br />',
+  );
+
+  $form = array();
   $form['description'] = array(
-    '#markup' => 'This module is connected to the Instagram account: ' . variable_get('social_feed_username', '') .
-      '<br><br>' .
-      'The feed is currently configured to pull new photos from: ' . $text .
-      '<br><br>' .
-      'New photos will be requested on each cron run. Make sure cron is configured to run regularly.' .
-      '<br><br>' .
-      'To pull new photos manually, click Run below:' .
-      '<br><br>'
+    '#markup' => implode('', $message),
   );
 
   $form['run'] = array(
@@ -511,11 +592,12 @@ function social_status() {
 
 }
 
-/*
+/**
  * Callback function for manually running an API request.
  */
 function social_status_submit($form, &$form_state) {
-    social_feed_cron();
+  $out = social_feed_cron();
+  drupal_set_message($out);
 }
 
 /**

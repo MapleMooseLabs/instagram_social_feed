@@ -47,7 +47,7 @@ function social_feed_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'description' => 'Primary Key: Unique ID.',
-        'no export' => TRUE, // Do not export database-only keys.
+        'no export' => TRUE,
       ),
       'user_id' => array(
         'type' => 'int',
@@ -56,38 +56,37 @@ function social_feed_schema() {
         'description' => 'User ID',
       ),
       'tags' => array(
-        'type' => 'varchar',
+        'type' => 'text',
         'length' => 255,
         'not null' => TRUE,
-        'default' => '',
         'description' => 'Tags',
       ),
-      'time' => array(
+      'created_time' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-        'description' => 'Client title',
+        'description' => 'Created time.',
       ),
       'low_resolution' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
-        'description' => 'Low resolution',
+        'description' => 'Low resolution photo.',
       ),
       'thumbnail' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
-        'description' => 'Thumbnail',
+        'description' => 'Photo thumbnail.',
       ),
       'standard_resolution' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
-        'description' => 'Std resolution',
+        'description' => 'Standard photo resolution',
       ),
       'caption' => array(
         'type' => 'text',
