@@ -249,9 +249,13 @@ function social_feed_cron() {
  */
 function social_feed_settings() {
 
-  $access_key = variable_get('social_feed_api_key', '');
-  // Access token request in process.
-  if (isset($_GET['code']) && $access_key == '') {
+  // Check for request to remove access key.
+  if (isset($_GET['code']) && $_GET['code'] == '') {
+    variable_del('social_feed_api_key');
+    drupal_goto('admin/config/services/social_feed/settings');
+  }
+  // Check for request to generate access key.
+  else if (isset($_GET['code'])) {
 
     $url = "https://api.instagram.com/oauth/access_token";
     $fields = array(
@@ -290,6 +294,8 @@ function social_feed_settings() {
     }
 
   }
+
+  $access_key = variable_get('social_feed_api_key', '');
 
   $form = array();
   if ($access_key == '') {
@@ -341,7 +347,7 @@ function social_feed_settings() {
       '#description' => 'Stored access key for accessing the API key',
     );
     $form['authenticate'] = array(
-      '#markup' => l(t('Click here to remove the access key and re-authenticate via Instgram'),
+      '#markup' => l(t('Click here to remove the access key and re-authenticate via Instagram'),
         'admin/config/services/social_feed/settings/', array(
           'query' => array('code' => ''),
         )
@@ -443,7 +449,7 @@ function social_feed_block_view($delta = '') {
 
 
 /**
- * Public function to get Instagram infomration from the database.
+ * Public function to get Instagram information from the database.
  *
  * @return DatabaseStatementInterface|null
  *   Database results.
