@@ -315,7 +315,7 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_client_secret', ''),
       '#size' => 60,
       '#maxlength' => 255,
-      '#description' => 'The client secret can be found after creating an Instagram client in the API console.',
+      '#description' => t('The client secret can be found after creating an Instagram client in the API console.'),
     );
     $form['social_feed_redirect_uri'] = array(
       '#type' => 'textfield',
@@ -323,7 +323,9 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_redirect_uri', ''),
       '#size' => 60,
       '#maxlength' => 255,
-      '#description' => 'Set the redirect URI to http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'],
+      '#description' => t('Set the redirect URI to :url', array(
+        ':url' => 'http://' . $_SERVER['SERVER_NAME'] . '/admin/config/services/social_feed/settings',
+      )),
     );
 
     if (variable_get('social_feed_client_id', '') != '' && variable_get('social_feed_redirect_uri', '') != '') {
@@ -344,7 +346,7 @@ function social_feed_settings() {
       '#size' => 60,
       '#maxlength' => 255,
       '#disabled' => TRUE,
-      '#description' => 'Stored access key for accessing the API key',
+      '#description' => t('Stored access key for accessing the API key'),
     );
     $form['authenticate'] = array(
       '#markup' => l(t('Click here to remove the access key and re-authenticate via Instagram'),
@@ -367,7 +369,7 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_passive_timeout', ''),
       '#size' => 60,
       '#maxlength' => 255,
-      '#description' => 'Timeout in minutes before the site will request new data from Instagram',
+      '#description' => t('Timeout in minutes before the site will request new data from Instagram'),
     );
     $form['social_feed_block_count'] = array(
       '#type' => 'textfield',
@@ -375,7 +377,7 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_block_count', '0'),
       '#size' => 60,
       '#maxlength' => 255,
-      '#description' => 'Determines number of photos that display in the block this module provides',
+      '#description' => t('Determines number of photos that display in the block this module provides'),
     );
     $form['social_feed_search_type'] = array(
       '#type' => 'radios',
@@ -393,7 +395,7 @@ function social_feed_settings() {
       '#default_value' => variable_get('social_feed_search_tag', ''),
       '#size' => 60,
       '#maxlength' => 255,
-      '#description' => 'Exclude the preceding the # (hashtag), leave blank if not searching by hashtag',
+      '#description' => t('Exclude the preceding the # (hashtag), leave blank if not searching by hashtag'),
     );
 
     $form['social_feed_more'] = array(
