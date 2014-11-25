@@ -51,6 +51,14 @@ function social_feed_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['admin/config/services/social_feed/delete'] = array(
+    'title' => t('Delete photos'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('social_feed_delete_confirm'),
+    'access arguments' => array('administer social_feed settings'),
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 
@@ -115,7 +123,14 @@ function social_overview() {
     'sticky' => FALSE,
     'empty' => 'No photos yet',
   );
-  return theme_table($variables);
+
+  $count = count($rows);
+  $markup = '';
+  if ($count > 0) {
+    $markup = 'Click here to <a href="/admin/config/services/social_feed/delete">delete all ' . $count . ' photos</a>.';
+  }
+
+  return theme_table($variables) . $markup;
 
 }
 
@@ -615,4 +630,32 @@ function social_feed_ctools_plugin_directory($owner, $plugin_type) {
   if ($owner == 'ctools' && $plugin_type == 'content_types') {
     return 'plugins/content_types';
   }
+}
+
+/**
+ * Delete all photos confirmation.
+ */
+function social_feed_delete_confirm($form, &$form_state) {
+  $form = array();
+  return confirm_form($form, t('Are you sure you want to delete all photos?'),
+    'admin/config/services/social_feed', t('This action cannot be undone.'), t('Delete'),
+    t('Cancel')
+  );
+}
+
+/**
+ * Delete all photos confirm submit.
+ */
+function social_feed_delete_confirm_submit($form, &$form_state) {
+  $form_values = $form_state['values'];
+
+  if ($form_values['confirm']) {
+    $num_deleted = db_delete('social_instagram')
+      ->execute();
+    drupal_set_message(t('Successfully deleted :num photos.', array(
+      ':num' => $num_deleted,
+    )));
+  }
+
+  drupal_goto("admin/config/services/social_feed");
 }
