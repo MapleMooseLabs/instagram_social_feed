@@ -29,7 +29,7 @@ function social_feed_menu() {
   );
 
   $items['admin/config/services/social_feed/settings'] = array(
-    'title' => 'Manage settings',
+    'title' => 'Manage feeds',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('social_feed_settings'),
