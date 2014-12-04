@@ -124,6 +124,78 @@ function social_feed_schema() {
     'primary key' => array('id'),
   );
 
+  $schema['social_feeds_instagram'] = array(
+    'description' => 'Stores Instagram feed settings',
+    'export' => array(
+    'key' => 'name',
+      'key name' => 'Name',
+      'primary key' => 'id',
+      'identifier' => 'preset', // Exports will be defined as $preset
+      'default hook' => 'default_nitf_xml_preset',  // Function hook name.
+      'api' => array(
+        'owner' => 'social_feed',
+        'api' => 'default_social_feed_presets',  // Base name for api include files.
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+//id
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique ID.',
+        'no export' => TRUE, // Do not export database-only keys.
+      ),
+//type
+      'type' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Integer indicating the feed type - refer to .module file for constants',
+      ),
+//search_term
+      'search_term' => array(
+        'type' => 'varchar',
+        'length' => 255,
+//        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Hashtag to search',
+      ),
+//auto_publish
+      'auto_publish' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean indicating whether to auto publish photos',
+      ),
+//cache_timeout
+      'sync_enabled' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Integer indicating the minimum time in seconds before requesting new content',
+      ),
+//num_photos
+      'num_photos' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Integer defining how many photos to display inside this panel pane',
+      ),
+//enabled
+      'enabled' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean indicating whether to enable this feed',
+      ),
+
+    ),
+    'primary key' => array('id'),
+  );
+
   return $schema;
 
 }
