@@ -154,7 +154,7 @@ function social_feed_schema() {
         'default' => '',
         'description' => 'Client title',
       ),
-      'type' => array(
+      'feed_type' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,

@@ -34,10 +34,10 @@ $plugin = array(
  */
 function social_feed_ctools_export_ui_form(&$form, &$form_state) {
   $preset = $form_state['item'];
-  $form['type'] = array(
+  $form['feed_type'] = array(
     '#type' => 'textfield',
     '#title' => t('Feed type'),
-    '#default_value' => $preset->type,
+    '#default_value' => $preset->feed_type,
     '#required' => TRUE,
   );
   $form['search_term'] = array(
