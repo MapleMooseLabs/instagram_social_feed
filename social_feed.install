@@ -140,7 +140,6 @@ function social_feed_schema() {
       ),
     ),
     'fields' => array(
-//id
       'id' => array(
         'type' => 'serial',
         'unsigned' => TRUE,
@@ -148,14 +147,19 @@ function social_feed_schema() {
         'description' => 'Primary Key: Unique ID.',
         'no export' => TRUE, // Do not export database-only keys.
       ),
-//type
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Client title',
+      ),
       'type' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Integer indicating the feed type - refer to .module file for constants',
       ),
-//search_term
       'search_term' => array(
         'type' => 'varchar',
         'length' => 255,
@@ -163,28 +167,18 @@ function social_feed_schema() {
         'default' => '',
         'description' => 'Hashtag to search',
       ),
-//auto_publish
       'auto_publish' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Boolean indicating whether to auto publish photos',
       ),
-//cache_timeout
-      'sync_enabled' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Integer indicating the minimum time in seconds before requesting new content',
-      ),
-//num_photos
       'num_photos' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Integer defining how many photos to display inside this panel pane',
       ),
-//enabled
       'enabled' => array(
         'type' => 'int',
         'not null' => TRUE,

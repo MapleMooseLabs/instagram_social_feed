@@ -14,27 +14,35 @@ define('SOCIAL_FEED_USER_PHOTOS', 2);
  */
 function social_feed_menu() {
 
-  $items['admin/config/services/social_feed'] = array(
-    'title' => 'Social Aggregator',
+  $items['admin/config/services/social_feed/overview'] = array(
+    'title' => 'Moderation',
     'description' => 'Approve new items for site display',
     'page callback' => 'social_overview',
     'access arguments' => array('administer social_feed settings'),
-    'type' => MENU_NORMAL_ITEM,
+    'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/config/services/social_feed/tab1'] = array(
+/*  $items['admin/config/services/social_feed/tab1'] = array(
     'title' => 'Overview',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
-  );
+  );*/
 
   $items['admin/config/services/social_feed/settings'] = array(
-    'title' => 'Manage feeds',
+    'title' => 'Manage settings',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('social_feed_settings'),
     'access arguments' => array('administer social_feed settings'),
   );
+
+/*  $items['admin/config/services/social_feed/feeds_settings'] = array(
+    'title' => 'Manage feeds',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('social_feeds'),
+    'access arguments' => array('administer social_feed settings'),
+  );*/
 
   $items['admin/config/services/social_feed/status'] = array(
     'title' => 'Status',
@@ -259,6 +267,10 @@ function social_feed_cron() {
   return $message;
 }
 
+function social_feeds() {
+
+}
+
 /**
  * Callback function for settings form.
  */
@@ -369,71 +381,6 @@ function social_feed_settings() {
           'query' => array('code' => ''),
         )
       ),
-    );
-    $form['spacer'] = array(
-      '#markup' => '<p></p>',
-    );
-    $form['social_feed_auto_publish'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Auto-publish new photos'),
-      '#default_value' => variable_get('social_feed_auto_publish', ''),
-    );
-    $form['social_feed_passive_timeout'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Minimum Cache Timeout'),
-      '#default_value' => variable_get('social_feed_passive_timeout', ''),
-      '#size' => 60,
-      '#maxlength' => 255,
-      '#description' => t('Timeout in minutes before the site will request new data from Instagram'),
-    );
-    $form['social_feed_block_count'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Number of Photos'),
-      '#default_value' => variable_get('social_feed_block_count', '0'),
-      '#size' => 60,
-      '#maxlength' => 255,
-      '#description' => t('Determines number of photos that display in the block this module provides'),
-    );
-    $form['social_feed_search_type'] = array(
-      '#type' => 'radios',
-      '#title' => t('Instagram Feed Source'),
-      '#default_value' => variable_get('social_feed_search_type', '0'),
-      '#options' => array(
-        SOCIAL_FEED_USER_FEED =>   t('User Feed'),
-        SOCIAL_FEED_HASHTAG =>     t('Hashtag'),
-        SOCIAL_FEED_USER_PHOTOS => t("User's Own Photos"),
-      ),
-    );
-    $form['social_feed_search_tag'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Search term (if using hashtag)'),
-      '#default_value' => variable_get('social_feed_search_tag', ''),
-      '#size' => 60,
-      '#maxlength' => 255,
-      '#description' => t('Exclude the preceding the # (hashtag), leave blank if not searching by hashtag'),
-    );
-
-    $form['social_feed_more'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('More Link'),
-      '#collapsible' => FALSE,
-      '#collapsed' => FALSE,
-      '#description' => t('Enter a URL and text to create a general link in the display. Leave Link URL blank to display none.'),
-    );
-    $form['social_feed_more']['social_feed_more_uri'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Link URL'),
-      '#default_value' => variable_get('social_feed_more_uri', ''),
-      '#description' => t('Ex: http://instagram.com/mediacurrent.'),
-      '#size' => 60,
-      '#maxlength' => 255,
-    );
-    $form['social_feed_more']['social_feed_more_link'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Link Text'),
-      '#default_value' => variable_get('social_feed_more_link', 'More'),
-      '#size' => 60,
-      '#maxlength' => 255,
     );
   }
 
@@ -629,6 +576,9 @@ function social_status_submit($form, &$form_state) {
 function social_feed_ctools_plugin_directory($owner, $plugin_type) {
   if ($owner == 'ctools' && $plugin_type == 'content_types') {
     return 'plugins/content_types';
+  }
+  if ($plugin_type =='export_ui') {
+    return 'plugins/export_ui';
   }
 }
 
