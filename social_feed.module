@@ -36,14 +36,6 @@ function social_feed_menu() {
     'access arguments' => array('administer social_feed settings'),
   );
 
-/*  $items['admin/config/services/social_feed/feeds_settings'] = array(
-    'title' => 'Manage feeds',
-    'type' => MENU_LOCAL_TASK,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('social_feeds'),
-    'access arguments' => array('administer social_feed settings'),
-  );*/
-
   $items['admin/config/services/social_feed/status'] = array(
     'title' => 'Status',
     'type' => MENU_LOCAL_TASK,
@@ -182,92 +174,99 @@ function api_call($query) {
  */
 function social_feed_cron() {
 
-  $access_token = variable_get('social_feed_api_key', '30805250.1fb234f.27a3c29a8e8545caa31a7be52462c2fa');
-
-  $type = variable_get('social_feed_search_type', 0);
-
-  // Hashtag search.
-  if ($type == SOCIAL_FEED_HASHTAG) {
-    $text = variable_get('social_feed_search_tag', 'nofilter');
-    $text = str_replace('#', '', $text);
-    $instagram_query = "https://api.instagram.com/v1/tags/$text/media/recent?access_token=$access_token";
-    $text = "Instagram feed: hashtag " . $text;
-  }
-  // User feed.
-  elseif ($type == SOCIAL_FEED_USER_FEED) {
-    $instagram_query = "https://api.instagram.com/v1/users/self/feed?access_token=$access_token";
-    $text = "Instagram feed: user feed";
-  }
-  // User photos.
-  else {
-    $uid = variable_get('social_feed_user_id', 0);
-    $instagram_query = "https://api.instagram.com/v1/users/" . $uid . "/media/recent?access_token=$access_token";
-    $text = "Instagram feed: user's own photos";
+  $access_token = variable_get('social_feed_api_key');
+  if (!$access_token) {
+    drupal_set_message(t('Cron could not run because no access token has been created'), 'error');
+    return;
   }
 
-  $total = 0;
-  $instagram_feed = json_decode(api_call($instagram_query));
+  // Select all feeds from the database.
+  $result = db_select('social_feeds_instagram', 'f')
+    ->fields('f')
+    ->condition('enabled', 1, '=')
+    ->execute();
 
-  $table = 'social_instagram';
-  if (!isset($instagram_feed->data)) {
-    return t('%text No items found.', array('%text' => $text));
-  }
+  // For each record in the database:
+  foreach ($result as $row) {
 
-  foreach ($instagram_feed->data as $feed) {
-    // Check if instagram photo already exists based on unix timestamp.
-    $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
-    $result = db_query($sql);
-    $count = $result->rowCount();
-    if ($count) {
-      continue;
+    $type = $row->feed_type;
+
+    // Hashtag search.
+    if ($type == SOCIAL_FEED_HASHTAG) {
+      $text = $row->search_term;
+      $text = str_replace('#', '', $text);
+      $instagram_query = "https://api.instagram.com/v1/tags/$text/media/recent?access_token=$access_token";
+      $text = "Instagram feed: hashtag " . $text;
+    }
+    // User feed.
+    elseif ($type == SOCIAL_FEED_USER_FEED) {
+      $instagram_query = "https://api.instagram.com/v1/users/self/feed?access_token=$access_token";
+      $text = "Instagram feed: user feed";
+    }
+    // User photos.
+    else {
+      $uid = variable_get('social_feed_user_id', 0);
+      $instagram_query = "https://api.instagram.com/v1/users/" . $uid . "/media/recent?access_token=$access_token";
+      $text = "Instagram feed: user's own photos";
     }
 
-    // Return tags as comma delimited string.
-    $tags = implode(',', $feed->tags);
+    $total = 0;
+    $instagram_feed = json_decode(api_call($instagram_query));
 
-    $caption = '';
-    if (isset($feed->caption->text)) {
-      $caption = utf8_encode($feed->caption->text);
+    $table = 'social_instagram';
+    if (!isset($instagram_feed->data)) {
+      return t('%text No items found.', array('%text' => $text));
     }
 
-    $data = array(
-      'user_id' => $feed->user->id,
-      'tags' => filter_xss($tags),
-      // Time stored in unix epoch format.
-      'created_time' => $feed->created_time,
-      'low_resolution' => $feed->images->low_resolution->url,
-      'thumbnail' => $feed->images->thumbnail->url,
-      'standard_resolution' => $feed->images->standard_resolution->url,
-      'caption' => filter_xss($caption),
-      'instagram_id' => $feed->id,
-      'instagram_link' => $feed->link,
-      'instagram_user' => $feed->user->username,
-      'approve' => variable_get('social_feed_auto_publish', 0),
-    );
+    foreach ($instagram_feed->data as $feed) {
+      // Check if instagram photo already exists based on unix timestamp.
+      $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
+      $result = db_query($sql);
+      $count = $result->rowCount();
+      if ($count) {
+        continue;
+      }
 
-    // Insert data into table.
-    $result = db_insert($table)->fields($data)->execute();
-    $total++;
+      // Return tags as comma delimited string.
+      $tags = implode(',', $feed->tags);
+
+      $caption = '';
+      if (isset($feed->caption->text)) {
+        $caption = utf8_encode($feed->caption->text);
+      }
+
+      $data = array(
+        'user_id' => $feed->user->id,
+        'tags' => filter_xss($tags),
+        // Time stored in unix epoch format.
+        'created_time' => $feed->created_time,
+        'low_resolution' => $feed->images->low_resolution->url,
+        'thumbnail' => $feed->images->thumbnail->url,
+        'standard_resolution' => $feed->images->standard_resolution->url,
+        'caption' => filter_xss($caption),
+        'instagram_id' => $feed->id,
+        'instagram_link' => $feed->link,
+        'instagram_user' => $feed->user->username,
+        'approve' => variable_get('social_feed_auto_publish', 0),
+      );
+
+      // Insert data into table.
+      $result = db_insert($table)->fields($data)->execute();
+      $total++;
+
+    }
+
+    $message = t('%text %total items imported.', array(
+      '%text' => $text,
+      '%total' => $total,
+    ));
+
+    drupal_set_message($message);
+    watchdog(__FUNCTION__, $message);
   }
-
-  $message = t('%text %total items imported.', array(
-    '%text' => $text,
-    '%total' => $total,
-  ));
 
   // Set last run variable for passive updating.
   variable_set('social_feed_last_run', time());
-
-  // Log the issue.
-  watchdog(__FUNCTION__, '%text %total items imported.', array(
-    '%text' => $text,
-    '%total' => $total,
-  ));
-
-  return $message;
-}
-
-function social_feeds() {
 
 }
 
@@ -566,8 +565,7 @@ function social_status() {
  * Callback function for manually running an API request.
  */
 function social_status_submit($form, &$form_state) {
-  $out = social_feed_cron();
-  drupal_set_message($out);
+  social_feed_cron();
 }
 
 /**
