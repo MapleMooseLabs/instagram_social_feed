@@ -35,10 +35,15 @@ $plugin = array(
 function social_feed_ctools_export_ui_form(&$form, &$form_state) {
   $preset = $form_state['item'];
   $form['feed_type'] = array(
-    '#type' => 'textfield',
+    '#type' => 'select',
     '#title' => t('Feed type'),
     '#default_value' => $preset->feed_type,
     '#required' => TRUE,
+    '#options' => array(
+      SOCIAL_FEED_USER_FEED => 'User Feed',
+      SOCIAL_FEED_HASHTAG => 'Hashtag',
+      SOCIAL_FEED_USER_PHOTOS => "User's own photos",
+    ),
   );
   $form['search_term'] = array(
     '#type' => 'textfield',
@@ -47,17 +52,10 @@ function social_feed_ctools_export_ui_form(&$form, &$form_state) {
     '#default_value' => $preset->search_term,
   );
   $form['auto_publish'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Auto-publish'),
+    '#type' => 'checkbox',
+    '#title' => t('Auto-publish?'),
     '#default_value' => $preset->auto_publish,
-  );
-  $form['num_photos'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Number of photos'),
-    '#description' => t('Number of photos to display at a time with this feed'),
-    '#default_value' => $preset->num_photos,
-    '#attributes' => array('placeholder' => 'num_photos'),
-    '#required' => TRUE,
+    '#required' => FALSE,
   );
   $form['enabled'] = array(
     '#type' => 'checkbox',

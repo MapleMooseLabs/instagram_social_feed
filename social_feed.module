@@ -190,6 +190,7 @@ function social_feed_cron() {
   foreach ($result as $row) {
 
     $type = $row->feed_type;
+    $feed_id = $row->id;
 
     // Hashtag search.
     if ($type == SOCIAL_FEED_HASHTAG) {
@@ -236,6 +237,7 @@ function social_feed_cron() {
       }
 
       $data = array(
+        'feed_id' => $feed_id,
         'user_id' => $feed->user->id,
         'tags' => filter_xss($tags),
         // Time stored in unix epoch format.
@@ -405,7 +407,7 @@ function social_feed_block_view($delta = '') {
   switch ($delta) {
     case 'social_feed_block':
       $block['subject'] = t('Instagram Social Feed');
-      $block['content'] = social_feed_contents($delta);
+      $block['content'] = social_feed_contents($delta, social_feed_get_contents);
       return $block;
   }
 }
@@ -447,11 +449,10 @@ function social_feed_get_contents() {
 /**
  * A module-defined block content function.
  */
-function social_feed_contents($which_block, $panel_count = NULL) {
+function social_feed_contents($which_block, $results) {
   switch ($which_block) {
     case 'social_feed_block':
 
-      $results = social_feed_get_contents();
       $count = 1;
       $total = $results->rowCount();
       $html = array();
@@ -500,11 +501,25 @@ function social_feed_contents($which_block, $panel_count = NULL) {
 
 
 /**
+ * Build database query for panel pane options and return the result.
+ */
+function social_feed_panel_pane_results($options = array()) {
+
+  $result = db_select('social_instagram', 's')
+    ->fields('s')
+    ->condition('feed_id', $options['feed'], '=')
+    ->range(0, $options['count'])
+    ->execute();
+
+  return $result;
+}
+
+/**
  * Generate content for the custom panel pane.
  */
-function social_feed_panel_pane_content($count = 6) {
+function social_feed_panel_pane_content($options = array()) {
 
-  $block = social_feed_contents('social_feed_block', $count);
+  $block = social_feed_contents('social_feed_block', social_feed_panel_pane_results($options));
   return $block;
 }
 

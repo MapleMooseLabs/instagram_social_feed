@@ -49,6 +49,11 @@ function social_feed_schema() {
         'description' => 'Primary Key: Unique ID.',
         'no export' => TRUE,
       ),
+      'feed_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'description' => 'Corresponding feed ID.',
+      ),
       'user_id' => array(
         'type' => 'int',
         'not null' => TRUE,
@@ -163,7 +168,6 @@ function social_feed_schema() {
       'search_term' => array(
         'type' => 'varchar',
         'length' => 255,
-//        'not null' => TRUE,
         'default' => '',
         'description' => 'Hashtag to search',
       ),
@@ -172,12 +176,6 @@ function social_feed_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Boolean indicating whether to auto publish photos',
-      ),
-      'num_photos' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Integer defining how many photos to display inside this panel pane',
       ),
       'enabled' => array(
         'type' => 'int',
