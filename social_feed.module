@@ -22,12 +22,6 @@ function social_feed_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-/*  $items['admin/config/services/social_feed/tab1'] = array(
-    'title' => 'Overview',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );*/
-
   $items['admin/config/services/social_feed/settings'] = array(
     'title' => 'Manage settings',
     'type' => MENU_LOCAL_TASK,
@@ -283,7 +277,7 @@ function social_feed_settings() {
     drupal_goto('admin/config/services/social_feed/settings');
   }
   // Check for request to generate access key.
-  else if (isset($_GET['code'])) {
+  elseif (isset($_GET['code'])) {
 
     $url = "https://api.instagram.com/oauth/access_token";
     $fields = array(
