@@ -547,8 +547,6 @@ function social_status() {
   $message = array(
     'This module is connected to the Instagram account: ',
     variable_get('social_feed_username', ''),
-    '<br /><br />The feed is currently configured to pull new photos from: ',
-    $text,
     '<br /><br />',
     'New photos will be requested on each cron run. Make sure cron is configured to run regularly.',
     '<br /><br />',
