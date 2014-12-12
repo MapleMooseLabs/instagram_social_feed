@@ -14,10 +14,11 @@ define('SOCIAL_FEED_USER_PHOTOS', 2);
  */
 function social_feed_menu() {
 
-  $items['admin/config/services/social_feed/overview'] = array(
+  $items['admin/config/services/social_feed/overview/%'] = array(
     'title' => 'Moderation',
     'description' => 'Approve new items for site display',
     'page callback' => 'social_overview',
+    'page arguments' => array(5),
     'access arguments' => array('administer social_feed settings'),
     'type' => MENU_LOCAL_TASK,
   );
@@ -70,7 +71,7 @@ function social_feed_permission() {
 /**
  * Callback function for Instagram display table.
  */
-function social_overview() {
+function social_overview($feed = NULL) {
 
   $api = variable_get('social_feed_api_key');
   if (!$api) {
@@ -81,10 +82,15 @@ function social_overview() {
 
   $header = array('Thumbnail', 'User', 'Caption', 'Timestamp', 'Publish?');
 
-  $results = db_select('social_instagram', 's')
+  $query = db_select('social_instagram', 's')
     ->fields('s', array())
-    ->orderBy('instagram_id', 'DESC')
-    ->execute();
+    ->orderBy('instagram_id', 'DESC');
+
+  if ($feed) {
+    $query->condition('feed_id', $feed, '=');
+  }
+
+  $results = $query->execute();
   $rows = array();
   while ($row = $results->fetch()) {
 
