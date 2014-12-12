@@ -85,6 +85,7 @@ function social_overview($feed = NULL) {
   $query = db_select('social_instagram', 's')
     ->fields('s', array())
     ->orderBy('instagram_id', 'DESC');
+  $query = $query->extend('PagerDefault')->limit(100);
 
   if ($feed) {
     $query->condition('feed_id', $feed, '=');
@@ -127,10 +128,10 @@ function social_overview($feed = NULL) {
   $count = count($rows);
   $markup = '';
   if ($count > 0) {
-    $markup = 'Click here to <a href="/admin/config/services/social_feed/delete">delete all ' . $count . ' photos</a>.';
+    $markup = 'Click here to <a href="/admin/config/services/social_feed/delete">delete all photos</a>.';
   }
 
-  return theme_table($variables) . $markup;
+  return theme('table', $variables) . theme('pager');
 
 }
 
@@ -569,6 +570,15 @@ function social_status() {
     '#value' => 'Run',
     '#submit' => array('social_status_submit'),
   );
+
+  $results = db_select('social_instagram', 's')->fields('s')->execute();
+  $count = $results->rowCount();
+
+  if ($count > 0) {
+    $form['delete'] = array(
+      '#markup' => '<p>Click here to <a href="/admin/config/services/social_feed/delete">delete all photos</a>.</p>',
+    );
+  }
 
   return $form;
 
