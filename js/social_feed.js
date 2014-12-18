@@ -29,6 +29,11 @@
         });
       });
 
+      var $select = $("select", context);
+      $select.change(function(data) {
+        window.location.href="/admin/config/services/social_feed/overview/" + this.value;
+      });
+
     }
   }
 }(jQuery));

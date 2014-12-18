@@ -131,7 +131,25 @@ function social_overview($feed = NULL) {
     $markup = 'Click here to <a href="/admin/config/services/social_feed/delete">delete all photos</a>.';
   }
 
-  return theme('table', $variables) . theme('pager');
+  $results = db_select('social_feeds_instagram', 's')
+    ->fields('s', array())
+    ->execute();
+
+  $count = $results->rowCount();
+
+  $id = arg(5);
+  $feed_select = "";
+  if ($count > 0) {
+    $feed_select = "<select>";
+    $feed_select .= '<option value="">All</option>';
+    foreach ($results as $row) {
+      $selected = (arg(5) == $row->id) ? 'selected' : '';
+      $feed_select .= '<option value="' . $row->id . '" ' . $selected . '>' . $row->name . '</option>';
+    }
+    $feed_select .= "</select>";
+  }
+
+  return $feed_select . theme('table', $variables) . theme('pager');
 
 }
 
