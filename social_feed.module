@@ -505,7 +505,7 @@ function social_feed_contents($which_block, $results) {
       $html[] = '</ul>';
       $link_uri = variable_get('social_feed_more_uri', '');
       if ($link_uri != '') {
-        $link_txt = variable_get('social_feed_more_text', 'More');
+        $link_txt = variable_get('social_feed_more_uri', 'More');
         $html[] = l($link_txt, $link_uri, array('attributes' => array('class' => array('social-feed-link'))));
       }
       $html[] = '</div>';
