@@ -14,6 +14,14 @@ define('SOCIAL_FEED_USER_PHOTOS', 2);
  */
 function social_feed_menu() {
 
+  $items['admin/config/services/social_feed/overview'] = array(
+    'title' => 'Moderation',
+    'description' => 'Approve new items for site display',
+    'page callback' => 'social_overview',
+    'access arguments' => array('administer social_feed settings'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
   $items['admin/config/services/social_feed/overview/%'] = array(
     'title' => 'Moderation',
     'description' => 'Approve new items for site display',
@@ -137,13 +145,12 @@ function social_overview($feed = NULL) {
 
   $count = $results->rowCount();
 
-  $id = arg(5);
   $feed_select = "";
   if ($count > 0) {
     $feed_select = "<select>";
     $feed_select .= '<option value="">All</option>';
     foreach ($results as $row) {
-      $selected = (arg(5) == $row->id) ? 'selected' : '';
+      $selected = ($feed == $row->id) ? 'selected' : '';
       $feed_select .= '<option value="' . $row->id . '" ' . $selected . '>' . $row->name . '</option>';
     }
     $feed_select .= "</select>";
