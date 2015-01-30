@@ -22,15 +22,6 @@ function social_feed_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/config/services/social_feed/overview/%'] = array(
-    'title' => 'Moderation',
-    'description' => 'Approve new items for site display',
-    'page callback' => 'social_overview',
-    'page arguments' => array(5),
-    'access arguments' => array('administer social_feed settings'),
-    'type' => MENU_LOCAL_TASK,
-  );
-
   $items['admin/config/services/social_feed/settings'] = array(
     'title' => 'Manage settings',
     'type' => MENU_LOCAL_TASK,
@@ -95,8 +86,9 @@ function social_overview($feed = NULL) {
     ->orderBy('instagram_id', 'DESC');
   $query = $query->extend('PagerDefault')->limit(100);
 
-  if ($feed) {
-    $query->condition('feed_id', $feed, '=');
+  $feed_id = arg(5);
+  if (is_numeric($feed_id)) {
+    $query->condition('feed_id', $feed_id, '=');
   }
 
   $results = $query->execute();
