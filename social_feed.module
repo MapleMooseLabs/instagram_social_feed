@@ -470,7 +470,7 @@ function social_feed_get_contents() {
 /**
  * A module-defined block content function.
  */
-function social_feed_contents($which_block, $results) {
+function social_feed_contents($which_block, $results, $more = '') {
   switch ($which_block) {
     case 'social_feed_block':
 
@@ -505,10 +505,17 @@ function social_feed_contents($which_block, $results) {
         $count++;
         }
       $html[] = '</ul>';
-      $link_uri = variable_get('social_feed_more_uri', '');
-      if ($link_uri != '') {
-        $link_txt = variable_get('social_feed_more_uri', 'More');
-        $html[] = l($link_txt, $link_uri, array('attributes' => array('class' => array('social-feed-link'))));
+      if (isset($more)) {
+        $more_link = l(
+          $more['more_text'],
+          $more['more_uri'],
+          array(
+            'attributes' => array(
+              'class' => array('social-feed-link')
+            ),
+          )
+        );
+        $html[] = $more_link;
       }
       $html[] = '</div>';
 
@@ -519,7 +526,6 @@ function social_feed_contents($which_block, $results) {
       return $output;
   }
 }
-
 
 /**
  * Build database query for panel pane options and return the result.
@@ -539,8 +545,14 @@ function social_feed_panel_pane_results($options = array()) {
  * Generate content for the custom panel pane.
  */
 function social_feed_panel_pane_content($options = array()) {
-
-  $block = social_feed_contents('social_feed_block', social_feed_panel_pane_results($options));
+  $more = FALSE;
+  if (!empty($options['more_uri'])){
+    $more = array(
+      'more_uri' => $options['more_uri'],
+      'more_text' => $options['more_text'],
+    );
+  }
+  $block = social_feed_contents('social_feed_block', social_feed_panel_pane_results($options), $more);
   return $block;
 }
 
