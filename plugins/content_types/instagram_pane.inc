@@ -57,8 +57,10 @@ function social_feed_pane_form_submit($form, &$form_state) {
  * Render the panel.
  */
 function social_feed_pane_render($subtype, $conf, $args, $contexts) {
-  if ($contexts->empty) {
-    return;
+  foreach ($contexts as $context) {
+    if ($context->empty) {
+      return;
+    }
   }
 
   // Render as a block.
