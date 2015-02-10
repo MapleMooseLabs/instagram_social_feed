@@ -338,7 +338,8 @@ function social_feed_settings() {
       }
     }
   }
-  else if ($_GET['code'] == '') {
+  elseif (array_key_exists('code', $_GET) && $_GET['code'] == '') {
+
       // Remove api key for re-authentication.
       variable_del('social_feed_api_key');
       // Unset variable for form.
