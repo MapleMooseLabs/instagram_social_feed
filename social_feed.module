@@ -332,6 +332,7 @@ function social_feed_settings() {
         variable_set('social_feed_username', $auth->user->username);
 
         $access_key = $auth->access_token;
+        drupal_set_message(t('Instagram authentication successful'));
       }
       else {
         drupal_set_message($auth->error_message, 'error');
