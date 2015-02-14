@@ -26,6 +26,7 @@ function social_feed_uninstall() {
   variable_del('social_feed_client_secret');
   variable_del('social_feed_redirect_uri');
   variable_del('social_feed_client_id');
+  variable_del('social_feed_last_run');
   // Publishing information.
   variable_del('social_feed_auto_publish');
   variable_del('social_feed_passive_timeout');
