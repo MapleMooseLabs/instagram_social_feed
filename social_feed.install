@@ -28,11 +28,12 @@ function social_feed_uninstall() {
   variable_del('social_feed_client_id');
   variable_del('social_feed_last_run');
   // Publishing information.
-  variable_del('social_feed_auto_publish');
   variable_del('social_feed_passive_timeout');
+  // Block data.
   variable_del('social_feed_block_count');
-  variable_del('social_feed_search_type');
-  variable_del('social_feed_search_tag');
+  variable_del('social_feed_feed_selection');
+  variable_del('social_feed_more_uri');
+  variable_del('social_feed_more_text');
 }
 
 /**

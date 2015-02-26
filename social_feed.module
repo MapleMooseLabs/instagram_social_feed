@@ -271,7 +271,7 @@ function social_feed_cron() {
         'instagram_id' => $feed->id,
         'instagram_link' => $feed->link,
         'instagram_user' => $feed->user->username,
-        'approve' => variable_get('social_feed_auto_publish', 0),
+        'approve' => $row->auto_publish,
       );
 
       // Insert data into table.
@@ -427,13 +427,88 @@ function social_feed_block_info() {
 }
 
 /**
+ * Implements hook_block_configure().
+ */
+function social_feed_block_configure($delta = '') {
+  $form = array();
+  if ($delta == 'social_feed_block') {
+    $result = db_select('social_feeds_instagram', 'f')
+      ->fields('f')
+      ->condition('enabled', 1, '=')
+      ->execute();
+
+    $form['social_feed_block_count'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Photo count'),
+      '#description' => t('Number of photos to be displayed'),
+      '#default_value' => variable_get('social_feed_block_count'),
+    );
+
+    $form['social_feed_feed_selection'] = array(
+      '#type' => 'select',
+      '#title' => t('Social Feed'),
+      '#description' => t('Which feed should be used as a source?'),
+      '#default_value' => variable_get('social_feed_feed_selection'),
+      '#options' => array(),
+    );
+    foreach ($result as $row) {
+      $form['social_feed_feed_selection']['#options'][$row->id] = $row->name;
+    }
+
+    $form['social_feed_more'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('More Link'),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      '#description' => t('Enter a URL and text to create a general link in the display. Leave Link URL blank to display none.'),
+    );
+
+    $form['social_feed_more']['social_feed_more_uri'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link URL'),
+      '#default_value' => variable_get('social_feed_more_uri'),
+      '#description' => t('Ex: http://instagram.com/mediacurrent'),
+      '#size' => 60,
+      '#maxlength' => 255,
+    );
+
+    $form['social_feed_more']['social_feed_more_text'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link Text'),
+      '#default_value' => variable_get('social_feed_more_text'),
+      '#size' => 60,
+      '#maxlength' => 255,
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function social_feed_block_save($delta = '', $edit = array()) {
+  if ($delta == 'social_feed_block') {
+    variable_set('social_feed_more_uri', $edit['social_feed_more_uri']);
+    variable_set('social_feed_more_text', $edit['social_feed_more_text']);
+    variable_set('social_feed_block_count', $edit['social_feed_block_count']);
+    variable_set('social_feed_feed_selection', $edit['social_feed_feed_selection']);
+  }
+}
+
+/**
  * Implements hook_block_view().
  */
 function social_feed_block_view($delta = '') {
   switch ($delta) {
     case 'social_feed_block':
       $block['subject'] = t('Instagram Social Feed');
-      $block['content'] = social_feed_contents($delta, social_feed_get_contents);
+
+      $more = FALSE;
+      $more = array(
+        'more_uri' => variable_get('social_feed_more_uri'),
+        'more_text' => variable_get('social_feed_more_text'),
+      );
+      $block['content'] = social_feed_contents($delta, social_feed_get_contents(TRUE), $more);
       return $block;
   }
 }
@@ -445,7 +520,7 @@ function social_feed_block_view($delta = '') {
  * @return DatabaseStatementInterface|null
  *   Database results.
  */
-function social_feed_get_contents() {
+function social_feed_get_contents($isblock = FALSE) {
   $timeout = variable_get('social_feed_passive_timeout', '');
   $timeout = intval($timeout) * 60;
 
@@ -457,10 +532,21 @@ function social_feed_get_contents() {
     }
   }
 
-  $query = db_select('social_instagram', 's')
-    ->fields('s')
-    ->condition('approve', 1)
-    ->orderBy('created_time', 'DESC');
+  // If we are dealing with a block we get the feed selection
+  if ($isblock == TRUE) {
+    $feed_id = variable_get('social_feed_feed_selection', '');
+    $query = db_select('social_instagram', 's')
+      ->fields('s')
+      ->condition('approve', 1)
+      ->condition('feed_id', $feed_id)
+      ->orderBy('created_time', 'DESC');
+  }
+  else {
+    $query = db_select('social_instagram', 's')
+      ->fields('s')
+      ->condition('approve', 1)
+      ->orderBy('created_time', 'DESC');
+  }
 
   $limit = variable_get('social_feed_block_count', 0);
   $limit = intval($limit);
@@ -551,7 +637,7 @@ function social_feed_panel_pane_results($options = array()) {
  */
 function social_feed_panel_pane_content($options = array()) {
   $more = FALSE;
-  if (!empty($options['more_uri'])){
+  if (!empty($options['more_uri'])) {
     $more = array(
       'more_uri' => $options['more_uri'],
       'more_text' => $options['more_text'],
@@ -565,23 +651,6 @@ function social_feed_panel_pane_content($options = array()) {
  * Callback function for module info page.
  */
 function social_status() {
-
-  $type = variable_get('social_feed_search_type', 0);
-
-  // Hashtag search.
-  if ($type == SOCIAL_FEED_HASHTAG) {
-    $text = variable_get('social_feed_search_tag', 'nofilter');
-    $text = str_replace('#', '', $text);
-    $text = "hashtag " . $text;
-  }
-  // User feed.
-  elseif ($type == SOCIAL_FEED_USER_FEED) {
-    $text = "user feed";
-  }
-  // User photos.
-  else {
-    $text = "user's own photos";
-  }
 
   $api = variable_get('social_feed_api_key');
   if (!$api) {
