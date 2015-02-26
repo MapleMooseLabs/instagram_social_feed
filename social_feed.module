@@ -254,15 +254,19 @@ function social_feed_cron() {
         $caption = utf8_encode($feed->caption->text);
       }
 
+      // Rewrite urls to use https.
+      $low_resolution = str_replace('http:', 'https:', $feed->images->low_resolution->url);
+      $thumbnail = str_replace('http:', 'https:', $feed->images->thumbnail->url);
+      $standard_resolution = str_replace('http:', 'https:', $feed->images->standard_resolution->url);
       $data = array(
         'feed_id' => $feed_id,
         'user_id' => $feed->user->id,
         'tags' => filter_xss($tags),
         // Time stored in unix epoch format.
         'created_time' => $feed->created_time,
-        'low_resolution' => $feed->images->low_resolution->url,
-        'thumbnail' => $feed->images->thumbnail->url,
-        'standard_resolution' => $feed->images->standard_resolution->url,
+        'low_resolution' => $low_resolution,
+        'thumbnail' => $thumbnail,
+        'standard_resolution' => $standard_resolution,
         'caption' => filter_xss($caption),
         'instagram_id' => $feed->id,
         'instagram_link' => $feed->link,
