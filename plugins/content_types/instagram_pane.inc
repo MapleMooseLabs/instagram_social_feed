@@ -2,12 +2,12 @@
 
 $plugin = array(
   'single' => TRUE,
-  'title' => t('Social feed pane'),
-  'description' => t('Display photos from the Social Feed module'),
+  'title' => t('Instagram Social feed pane'),
+  'description' => t('Display photos from the Instagram Social Feed module'),
   'category' => t('Custom Panes'),
-  'edit form' => 'social_feed_pane_form',
-  'render callback' => 'social_feed_pane_render',
-  'admin info' => 'social_feed_pane_info',
+  'edit form' => 'instagram_social_feed_pane_form',
+  'render callback' => 'instagram_social_feed_pane_render',
+  'admin info' => 'instagram_social_feed_pane_info',
   'defaults' => array(),
   'all contexts' => TRUE,
 );
@@ -15,53 +15,53 @@ $plugin = array(
 /**
  * Edit form.
  */
-function social_feed_pane_form($form, &$form_state) {
+function instagram_social_feed_pane_form($form, &$form_state) {
   $conf = $form_state['conf'];
 
-  $result = db_select('social_feeds_instagram', 'f')
+  $result = db_select('instagram_social_feeds', 'f')
     ->fields('f')
     ->condition('enabled', 1, '=')
     ->execute();
 
-  $form['social_feed_pane_count'] = array(
+  $form['instagram_social_feed_pane_count'] = array(
     '#type' => 'textfield',
     '#title' => t('Photo count'),
     '#description' => t('Number of photos to be displayed'),
-    '#default_value' => $conf['social_feed_pane_count'],
+    '#default_value' => $conf['instagram_social_feed_pane_count'],
   );
 
-  $form['social_feed_feed_selection'] = array(
+  $form['instagram_social_feed_feed_selection'] = array(
     '#type' => 'select',
     '#title' => t('Social Feed'),
     '#description' => t('Which feed should be used as a source?'),
-    '#default_value' => $conf['social_feed_feed_selection'],
+    '#default_value' => $conf['instagram_social_feed_feed_selection'],
     '#options' => array(),
   );
-  $form['social_feed_more'] = array(
+  $form['instagram_social_feed_more'] = array(
     '#type' => 'fieldset',
     '#title' => t('More Link'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#description' => t('Enter a URL and text to create a general link in the display. Leave Link URL blank to display none.'),
   );
-  $form['social_feed_more']['social_feed_more_uri'] = array(
+  $form['instagram_social_feed_more']['instagram_social_feed_more_uri'] = array(
     '#type' => 'textfield',
     '#title' => t('Link URL'),
-    '#default_value' => $conf['social_feed_more_uri'],
+    '#default_value' => $conf['instagram_social_feed_more_uri'],
     '#description' => t('Ex: http://instagram.com/mediacurrent.'),
     '#size' => 60,
     '#maxlength' => 255,
   );
-  $form['social_feed_more']['social_feed_more_text'] = array(
+  $form['instagram_social_feed_more']['instagram_social_feed_more_text'] = array(
     '#type' => 'textfield',
     '#title' => t('Link Text'),
-    '#default_value' => $conf['social_feed_more_text'],
+    '#default_value' => $conf['instagram_social_feed_more_text'],
     '#size' => 60,
     '#maxlength' => 255,
   );
 
   foreach ($result as $row) {
-    $form['social_feed_feed_selection']['#options'][$row->id] = $row->name;
+    $form['instagram_social_feed_feed_selection']['#options'][$row->id] = $row->name;
   }
 
   return $form;
@@ -70,17 +70,17 @@ function social_feed_pane_form($form, &$form_state) {
 /**
  * Edit form submit function.
  */
-function social_feed_pane_form_submit($form, &$form_state) {
-  $form_state['conf']['social_feed_pane_count'] = $form_state['values']['social_feed_pane_count'];
-  $form_state['conf']['social_feed_feed_selection'] = $form_state['values']['social_feed_feed_selection'];
-  $form_state['conf']['social_feed_more_uri'] = $form_state['values']['social_feed_more_uri'];
-  $form_state['conf']['social_feed_more_text'] = $form_state['values']['social_feed_more_text'];
+function instagram_social_feed_pane_form_submit($form, &$form_state) {
+  $form_state['conf']['instagram_social_feed_pane_count'] = $form_state['values']['instagram_social_feed_pane_count'];
+  $form_state['conf']['instagram_social_feed_feed_selection'] = $form_state['values']['instagram_social_feed_feed_selection'];
+  $form_state['conf']['instagram_social_feed_more_uri'] = $form_state['values']['instagram_social_feed_more_uri'];
+  $form_state['conf']['instagram_social_feed_more_text'] = $form_state['values']['instagram_social_feed_more_text'];
 }
 
 /**
  * Render the panel.
  */
-function social_feed_pane_render($subtype, $conf, $args, $contexts) {
+function instagram_social_feed_pane_render($subtype, $conf, $args, $contexts) {
   foreach ($contexts as $context) {
     if ($context->empty) {
       return;
@@ -89,13 +89,13 @@ function social_feed_pane_render($subtype, $conf, $args, $contexts) {
 
   // Render as a block.
   $block = new stdClass();
-  $block->module = 'social_feed';
+  $block->module = 'instagram_social_feed';
 
-  $block->content = social_feed_panel_pane_content(array(
-    'count' => $conf['social_feed_pane_count'],
-    'feed' =>  $conf['social_feed_feed_selection'],
-    'more_uri' => !empty($conf['social_feed_more_uri']) ? $conf['social_feed_more_uri'] : FALSE ,
-    'more_text' => !empty($conf['social_feed_more_text']) ? $conf['social_feed_more_text'] : 'More',
+  $block->content = instagram_social_feed_panel_pane_content(array(
+    'count' => $conf['instagram_social_feed_pane_count'],
+    'feed' =>  $conf['instagram_social_feed_feed_selection'],
+    'more_uri' => !empty($conf['instagram_social_feed_more_uri']) ? $conf['instagram_social_feed_more_uri'] : FALSE ,
+    'more_text' => !empty($conf['instagram_social_feed_more_text']) ? $conf['instagram_social_feed_more_text'] : 'More',
   ));
   return $block;
 }
@@ -103,9 +103,9 @@ function social_feed_pane_render($subtype, $conf, $args, $contexts) {
 /**
  * Admin info.
  */
-function social_feed_taxonomy_pane_info($subtype, $conf, $contexts) {
+function instagram_social_feed_taxonomy_pane_info($subtype, $conf, $contexts) {
   if (!empty($conf)) {
-    $content = '<p><b>Photo Count:</b> ' . $conf['social_feed_pane_count'] . '</p>';
+    $content = '<p><b>Photo Count:</b> ' . $conf['instagram_social_feed_pane_count'] . '</p>';
 
     $block = new stdClass;
     $block->title = $conf['override_title'] ? $conf['override_title_text'] : '';

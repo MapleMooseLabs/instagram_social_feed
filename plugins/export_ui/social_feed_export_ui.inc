@@ -7,13 +7,13 @@
  * Define this Export UI plugin.
  */
 $plugin = array(
-  'schema' => 'social_feeds_instagram',  // As defined in hook_schema().
-  'access' => 'administer social_feed settings',  // Define a permission users must have to access these pages.
+  'schema' => 'instagram_social_feeds',  // As defined in hook_schema().
+  'access' => 'administer instagram_social_feed settings',  // Define a permission users must have to access these pages.
   // Define the menu item.
   'menu' => array(
     'menu prefix' => 'admin/config/services',
-    'menu item' => 'social_feed',
-    'menu title' => 'Manage feeds',
+    'menu item' => 'instagram_social_feed',
+    'menu title' => 'Manage Instagram feeds',
     'menu description' => 'Administer Instagram feeds.',
   ),
   // Define user interface texts.
@@ -23,14 +23,14 @@ $plugin = array(
   'title plural proper' => t('Instagram feeds'),
   // Define the names of the functions that provide the add/edit forms.
   'form' => array(
-    'settings' => 'social_feed_ctools_export_ui_form',
+    'settings' => 'instagram_social_feed_ctools_export_ui_form',
   ),
 );
 
 /**
  * Define the preset add/edit form.
  */
-function social_feed_ctools_export_ui_form(&$form, &$form_state) {
+function instagram_social_feed_ctools_export_ui_form(&$form, &$form_state) {
   $preset = $form_state['item'];
   $form['feed_type'] = array(
     '#type' => 'select',
@@ -38,9 +38,9 @@ function social_feed_ctools_export_ui_form(&$form, &$form_state) {
     '#default_value' => $preset->feed_type,
     '#required' => TRUE,
     '#options' => array(
-      SOCIAL_FEED_USER_FEED => 'User Feed',
-      SOCIAL_FEED_HASHTAG => 'Hashtag',
-      SOCIAL_FEED_USER_PHOTOS => "User's own photos",
+      INSTAGRAM_SOCIAL_FEED_USER_FEED => 'User Feed',
+      INSTAGRAM_SOCIAL_FEED_HASHTAG => 'Hashtag',
+      INSTAGRAM_SOCIAL_FEED_USER_PHOTOS => "User's own photos",
     ),
   );
   $form['search_term'] = array(

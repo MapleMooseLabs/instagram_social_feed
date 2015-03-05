@@ -6,42 +6,33 @@
  */
 
 /**
- * Updates tags column to account for longer data.
- */
-function social_feed_update_7100() {
-  db_change_field('social_instagram', 'tags', 'tags', array(
-    'type' => 'text',
-  ));
-}
-
-/**
  * Implements hook_uninstall().
  */
-function social_feed_uninstall() {
+function instagram_social_feed_uninstall() {
   // API data.
-  variable_del('social_feed_api_key');
-  variable_del('social_feed_user_id');
-  variable_del('social_feed_username');
+  variable_del('instagram_social_feed_api_key');
+  variable_del('instagram_social_feed_user_id');
+  variable_del('instagram_social_feed_username');
   // Client setup data.
-  variable_del('social_feed_client_secret');
-  variable_del('social_feed_redirect_uri');
-  variable_del('social_feed_client_id');
-  variable_del('social_feed_last_run');
+  variable_del('instagram_social_feed_client_secret');
+  variable_del('instagram_social_feed_redirect_uri');
+  variable_del('instagram_social_feed_client_id');
+  variable_del('instagram_social_feed_last_run');
   // Publishing information.
-  variable_del('social_feed_passive_timeout');
+  variable_del('instagram_social_feed_passive_timeout');
   // Block data.
-  variable_del('social_feed_block_count');
-  variable_del('social_feed_feed_selection');
-  variable_del('social_feed_more_uri');
-  variable_del('social_feed_more_text');
+  variable_del('instagram_social_feed_block_count');
+  variable_del('instagram_social_feed_feed_selection');
+  variable_del('instagram_social_feed_more_uri');
+  variable_del('instagram_social_feed_more_text');
 }
 
 /**
  * Implements hook_schema().
  */
-function social_feed_schema() {
+function instagram_social_feed_schema() {
 
-  $schema['social_instagram'] = array(
+  $schema['instagram_social_feed_photos'] = array(
     'description' => 'Stores instagram photo data',
     'fields' => array(
       'id' => array(
@@ -131,7 +122,7 @@ function social_feed_schema() {
     'primary key' => array('id'),
   );
 
-  $schema['social_feeds_instagram'] = array(
+  $schema['instagram_social_feeds'] = array(
     'description' => 'Stores Instagram feed settings',
     'export' => array(
     'key' => 'name',
@@ -140,8 +131,8 @@ function social_feed_schema() {
       'identifier' => 'preset', // Exports will be defined as $preset
       'default hook' => 'default_nitf_xml_preset',  // Function hook name.
       'api' => array(
-        'owner' => 'social_feed',
-        'api' => 'default_social_feed_presets',  // Base name for api include files.
+        'owner' => 'instagram_social_feed',
+        'api' => 'default_instagram_social_feed_presets',  // Base name for api include files.
         'minimum_version' => 1,
         'current_version' => 1,
       ),

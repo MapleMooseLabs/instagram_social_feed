@@ -7,7 +7,7 @@
       var $checkbox_html = '<input type="checkbox" />';
       var $checkbox_enabled = '<input type="checkbox" checked="checked" />';
 
-      var $rows = $("body.page-admin-config-services-social-feed table tbody tr", context);
+      var $rows = $("body.page-admin-config-services-instagram-social-feed table tbody tr", context);
       $.each($rows, function(index, element) {
         var $td = jQuery("td", element);
 
@@ -25,13 +25,13 @@
         }
 
         $checkbox.click(function() {
-          jQuery.get('/ajax/social_approve?instagram_id=' + id);
+          jQuery.get('/ajax/instagram_social_feed_approve?instagram_id=' + id);
         });
       });
 
       var $select = $("select", context);
       $select.change(function(data) {
-        window.location.href="/admin/config/services/social_feed/overview/" + this.value;
+        window.location.href="/admin/config/services/instagram_social_feed/overview/" + this.value;
       });
 
     }
