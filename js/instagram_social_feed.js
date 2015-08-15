@@ -25,13 +25,13 @@
         }
 
         $checkbox.click(function() {
-          jQuery.get('/ajax/instagram_social_feed_approve?instagram_id=' + id);
+          jQuery.get(Drupal.settings.basePath +'ajax/instagram_social_feed_approve?instagram_id=' + id);
         });
       });
 
       var $select = $("select", context);
       $select.change(function(data) {
-        window.location.href="/admin/config/services/instagram_social_feed/overview/" + this.value;
+        window.location.href= Drupal.settings.basePath + "admin/config/services/instagram_social_feed/overview/" + this.value;
       });
 
     }
