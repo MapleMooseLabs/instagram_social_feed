@@ -49,6 +49,7 @@ function instagram_social_feed_schema() {
       ),
       'user_id' => array(
         'type' => 'int',
+        'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
         'description' => 'User ID',
@@ -183,4 +184,19 @@ function instagram_social_feed_schema() {
 
   return $schema;
 
+}
+
+/**
+ * Make user_id column unsigned.
+ */
+function instagram_social_feed_update_7101() {
+  $new_field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'User ID',
+  );
+
+  db_change_field('instagram_social_feed_photos', 'user_id', 'user_id', $new_field);
 }
