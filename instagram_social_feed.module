@@ -239,8 +239,10 @@ function instagram_social_feed_cron() {
 
     foreach ($instagram_feed->data as $feed) {
       // Check if instagram photo already exists based on unix timestamp.
-      $sql = "SELECT instagram_id FROM {$table} WHERE instagram_id = '{$feed->id}'";
-      $result = db_query($sql);
+      $result = db_select($table, 'f')
+        ->fields('f', array('instagram_id'))
+        ->condition('instagram_id', $feed->id, '=')
+        ->execute();
       $count = $result->rowCount();
       if ($count) {
         continue;
