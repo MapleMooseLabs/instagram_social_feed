@@ -37,11 +37,7 @@ function instagram_social_feed_ctools_export_ui_form(&$form, &$form_state) {
     '#title' => t('Feed type'),
     '#default_value' => $preset->feed_type,
     '#required' => TRUE,
-    '#options' => array(
-      INSTAGRAM_SOCIAL_FEED_USER_FEED => 'User Feed',
-      INSTAGRAM_SOCIAL_FEED_HASHTAG => 'Hashtag',
-      INSTAGRAM_SOCIAL_FEED_USER_PHOTOS => "User's own photos",
-    ),
+    '#options' => instagram_social_feed_get_feed_type_options(),
   );
   $form['search_term'] = array(
     '#type' => 'textfield',

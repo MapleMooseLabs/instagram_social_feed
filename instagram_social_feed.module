@@ -10,6 +10,22 @@ define('INSTAGRAM_SOCIAL_FEED_HASHTAG', 1);
 define('INSTAGRAM_SOCIAL_FEED_USER_PHOTOS', 2);
 
 /**
+ * Returns the list of possible feed types.
+ *
+ * @return array
+ */
+function instagram_social_feed_get_feed_type_options() {
+  return array(
+    INSTAGRAM_SOCIAL_FEED_USER_FEED => t('User Feed'),
+    INSTAGRAM_SOCIAL_FEED_HASHTAG => t('Hashtag'),
+    INSTAGRAM_SOCIAL_FEED_USER_PHOTOS => t("User's own photos"),
+  );
+}
+
+// Add entity API support.
+include_once 'instagram_social_feed.entity.inc';
+
+/**
  * Implements hook_menu().
  */
 function instagram_social_feed_menu() {
