@@ -422,6 +422,7 @@ function instagram_social_feed_panel_pane_results($options = array()) {
   $result = db_select('instagram_social_feed_photos', 's')
     ->fields('s')
     ->condition('feed_id', $options['feed'], '=')
+    ->condition('approve', 1, '=')
     ->orderBy('created_time', 'DESC')
     ->range(0, $options['count'])
     ->execute();
