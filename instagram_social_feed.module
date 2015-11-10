@@ -167,10 +167,7 @@ function instagram_social_feed_cron() {
       // Return tags as comma delimited string.
       $tags = implode(',', $feed->tags);
 
-      $caption = '';
-      if (isset($feed->caption->text)) {
-        $caption = utf8_encode($feed->caption->text);
-      }
+      $caption = isset($feed->caption->text) ? $feed->caption->text : '';
 
       // Rewrite urls to use https.
       $low_resolution = str_replace('http:', 'https:', $feed->images->low_resolution->url);
