@@ -246,7 +246,7 @@ function instagram_social_feed_status_form() {
 
   if ($count > 0) {
     $form['delete'] = array(
-      '#markup' => '<p>Click here to <a href="' . $base_path . 'admin/config/services/instagram_social_feed/delete">delete all photos</a>.</p>',
+      '#markup' => '<p>Click here to <a href="' . base_path() . 'admin/config/services/instagram_social_feed/delete">delete all photos</a>.</p>',
     );
   }
 
