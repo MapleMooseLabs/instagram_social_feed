@@ -19,8 +19,8 @@ function instagram_social_feed_entity_info() {
   $return = array(
     'instagram_social_feeds' => array(
       'module' => 'instagram_social_feed',
-      'label' => t('Social Feed'),
-      'plural label' => t('Social Feeds'),
+      'label' => t('Instagram feed'),
+      'plural label' => t('Instagram feeds'),
       'description' => t('An entity type used to store the definitions of an Instagram feed.'),
       'base table' => 'instagram_social_feeds',
       'revision table' => null,

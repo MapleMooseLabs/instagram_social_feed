@@ -131,18 +131,18 @@ function instagram_social_feed_cron() {
       $text = $row->search_term;
       $text = str_replace('#', '', $text);
       $instagram_query = "https://api.instagram.com/v1/tags/$text/media/recent?access_token=$access_token";
-      $text = "Instagram feed: hashtag " . $text;
+      $text = t('Instagram feed: hashtag %tag', array('%tag' => $text));
     }
     // User feed.
     elseif ($type == INSTAGRAM_SOCIAL_FEED_USER_FEED) {
       $instagram_query = "https://api.instagram.com/v1/users/self/feed?access_token=$access_token";
-      $text = "Instagram feed: user feed";
+      $text = t('Instagram feed: user feed');
     }
     // User photos.
     else {
       $uid = variable_get('instagram_social_feed_user_id', 0);
-      $instagram_query = "https://api.instagram.com/v1/users/" . $uid . "/media/recent?access_token=$access_token";
-      $text = "Instagram feed: user's own photos";
+      $instagram_query = "https://api.instagram.com/v1/users/$uid/media/recent?access_token=$access_token";
+      $text = t("Instagram feed: user's own photos");
     }
 
     $total = 0;
@@ -150,7 +150,8 @@ function instagram_social_feed_cron() {
 
     $table = 'instagram_social_feed_photos';
     if (!isset($instagram_feed->data)) {
-      return t('%text No items found.', array('%text' => $text));
+      // Ensure foreach will not loop but also will not emit a warning.
+      $instagram_feed->data = array();
     }
 
     foreach ($instagram_feed->data as $feed) {
@@ -195,11 +196,8 @@ function instagram_social_feed_cron() {
 
     }
 
-    $message = t('%text %total items imported.', array(
-      '%text' => $text,
-      '%total' => $total,
-    ));
-
+    $imported = format_plural($total, '1 item imported', '@count items imported');
+    $message = t("!text: !imported", array('!text' => $text, '!imported' => $imported));
     drupal_set_message($message);
     watchdog(__FUNCTION__, $message);
   }
@@ -297,7 +295,6 @@ function instagram_social_feed_block_view($delta = '') {
     case 'instagram_social_feed_block':
       $block['subject'] = t('Instagram Social Feed');
 
-      $more = FALSE;
       $more = array(
         'more_uri' => variable_get('instagram_social_feed_more_uri'),
         'more_text' => variable_get('instagram_social_feed_more_text'),

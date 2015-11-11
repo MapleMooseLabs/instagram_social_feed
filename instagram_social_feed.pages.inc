@@ -17,7 +17,7 @@ function instagram_social_feed_overview($feed = NULL) {
 
   drupal_add_js(drupal_get_path('module', 'instagram_social_feed') . '/js/instagram_social_feed.js');
 
-  $header = array('Thumbnail', 'User', 'Caption', 'Timestamp', 'Publish?');
+  $header = array(t('Thumbnail'), t('User'), t('Caption'), t('Timestamp'), t('Publish?'));
 
   $query = db_select('instagram_social_feed_photos', 's')
     ->fields('s', array())
@@ -215,13 +215,14 @@ function instagram_social_feed_status_form() {
     drupal_set_message(t('API Key not properly established. Please see the Manage Settings tab.'), 'error');
   }
 
+  $line1 = t('This module is connected to the Instagram account: %account', array('%account' => variable_get('instagram_social_feed_username', '')));
   $message = array(
-    'This module is connected to the Instagram account: ',
-    variable_get('instagram_social_feed_username', ''),
+    t('This module is connected to the Instagram account: %account', array('%account' => variable_get('instagram_social_feed_username', ''))),
     '<br /><br />',
-    'New photos will be requested on each cron run. Make sure cron is configured to run regularly.',
+    t('New photos will be requested on each cron run. Make sure cron is configured to run regularly.'),
     '<br /><br />',
-    'To pull new photos manually, click Run below:<br /><br />',
+    t('To pull new photos manually, click %run below:', array('%run' => t('Run'))),
+    '<br /><br />',
   );
 
   $form = array();
@@ -231,7 +232,7 @@ function instagram_social_feed_status_form() {
 
   $form['run'] = array(
     '#type' => 'submit',
-    '#value' => 'Run',
+    '#value' => t('Run'),
     '#submit' => array('instagram_social_feed_status_form_submit'),
   );
 
@@ -282,8 +283,11 @@ function instagram_social_feed_approve() {
  */
 function instagram_social_feed_delete_confirm($form, &$form_state) {
   $form = array();
-  return confirm_form($form, t('Are you sure you want to delete all photos?'),
-    'admin/config/services/instagram_social_feed', t('This action cannot be undone.'), t('Delete'),
+  return confirm_form($form,
+    t('Are you sure you want to delete all photos?'),
+    'admin/config/services/instagram_social_feed',
+    t('This action cannot be undone.'),
+    t('Delete'),
     t('Cancel')
   );
 }
@@ -297,9 +301,7 @@ function instagram_social_feed_delete_confirm_submit($form, &$form_state) {
   if ($form_values['confirm']) {
     $num_deleted = db_delete('instagram_social_feed_photos')
       ->execute();
-    drupal_set_message(t('Successfully deleted :num photos.', array(
-      ':num' => $num_deleted,
-    )));
+    drupal_set_message(t('Successfully deleted :num photos.', array(':num' => $num_deleted,)));
   }
 
   drupal_goto('admin/config/services/instagram_social_feed');

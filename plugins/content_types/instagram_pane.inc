@@ -95,7 +95,7 @@ function instagram_social_feed_pane_render($subtype, $conf, $args, $contexts) {
     'count' => $conf['instagram_social_feed_pane_count'],
     'feed' =>  $conf['instagram_social_feed_feed_selection'],
     'more_uri' => !empty($conf['instagram_social_feed_more_uri']) ? $conf['instagram_social_feed_more_uri'] : FALSE ,
-    'more_text' => !empty($conf['instagram_social_feed_more_text']) ? $conf['instagram_social_feed_more_text'] : 'More',
+    'more_text' => !empty($conf['instagram_social_feed_more_text']) ? $conf['instagram_social_feed_more_text'] : t('More'),
   ));
   return $block;
 }
