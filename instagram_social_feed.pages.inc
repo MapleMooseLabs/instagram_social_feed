@@ -63,12 +63,6 @@ function instagram_social_feed_overview($feed = NULL) {
     'empty' => 'No photos yet',
   );
 
-  $count = count($rows);
-  $markup = '';
-  if ($count > 0) {
-    $markup = 'Click here to <a href="' . base_path() . 'admin/config/services/instagram_social_feed/delete">delete all photos</a>.';
-  }
-
   $results = db_select('instagram_social_feeds', 's')
     ->fields('s', array())
     ->execute();
@@ -174,7 +168,7 @@ function instagram_social_feed_settings() {
       '#size' => 60,
       '#maxlength' => 255,
       '#description' => t('Set the redirect URI to :url', array(
-        ':url' => $GLOBALS['base_url'] . '/admin/config/services/instagram_social_feed/settings',
+        ':url' => url('admin/config/services/instagram_social_feed/settings'),
       )),
     );
 
@@ -246,7 +240,9 @@ function instagram_social_feed_status_form() {
 
   if ($count > 0) {
     $form['delete'] = array(
-      '#markup' => '<p>Click here to <a href="' . base_path() . 'admin/config/services/instagram_social_feed/delete">delete all photos</a>.</p>',
+      '#prefix' => '<p>',
+      '#markup' => l(t('Click here to delete all photos.'), 'admin/config/services/instagram_social_feed/delete'),
+      '#suffix' => '</p>',
     );
   }
 
@@ -306,5 +302,5 @@ function instagram_social_feed_delete_confirm_submit($form, &$form_state) {
     )));
   }
 
-  drupal_goto("admin/config/services/instagram_social_feed");
+  drupal_goto('admin/config/services/instagram_social_feed');
 }
