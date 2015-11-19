@@ -88,8 +88,9 @@ function instagram_social_feed_schema() {
         'description' => 'Standard photo resolution',
       ),
       'caption' => array(
-        'type' => 'text',
-        'size' => 'big',
+        'type' => 'blob',
+        'size' => 'normal',
+        'not null' => FALSE,
         'description' => 'Caption',
       ),
       'instagram_id' => array(
@@ -199,4 +200,29 @@ function instagram_social_feed_update_7101() {
   );
 
   db_change_field('instagram_social_feed_photos', 'user_id', 'user_id', $new_field);
+}
+
+/**
+ * Change Instagram caption field to blob to accommodate utf8mb4 characters.
+ *
+ * @todo This schema update is a workaround and should be reverted as soon as
+ *   Drupal's MySQL implementation properly supports the utf8mb4 character set.
+ *
+ * @see https://www.drupal.org/node/1910376
+ */
+function instagram_social_feed_update_7102() {
+  if (db_field_exists('instagram_social_feed_photos', 'caption')) {
+    $spec = array(
+      // Using a blob instead of a text type make it possible for MySQL to
+      // handle extended UTF8 characters, like emoji.
+      // @see https://www.drupal.org/node/1910376
+      'type' => 'blob',
+      // Balance size vs performance. The Instagram caption allows for captions
+      // that are 2200 characters in length, so in theory MySQL's default
+      // blob length of 16KB should be enough.
+      'size' => 'normal',
+      'not null' => FALSE,
+    );
+    db_change_field('instagram_social_feed_photos', 'caption', 'caption', $spec);
+  }
 }

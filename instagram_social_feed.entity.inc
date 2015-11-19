@@ -94,6 +94,13 @@ function instagram_social_feed_entity_property_info_alter(array &$info) {
   $properties['low_resolution']['type'] = 'uri';
   $properties['thumbnail']['type'] = 'uri';
   $properties['standard_resolution']['type'] = 'uri';
+  $properties['caption'] = array(
+    'type' => 'text',
+    'label' => t('Caption'),
+    'schema field' => 'caption',
+    // Copied from EntityDefaultMetadataController::entityPropertyInfo().
+    'description' =>  t('@entity "@property" property.', array('@entity' => t('Instagram photo'), '@property' => t('Caption'))),
+  );
   $properties['instagram_link']['type'] = 'uri';
   // We don't define a Drupal path to view this photo.
   unset($properties['url']);
