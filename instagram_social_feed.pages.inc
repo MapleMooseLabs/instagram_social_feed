@@ -47,7 +47,7 @@ function instagram_social_feed_overview($feed = NULL) {
           'target' => '_blank'),
         )
       ),
-      truncate_utf8($row->caption, 80, FALSE, TRUE),
+      truncate_utf8(utf8_decode($row->caption), 80, FALSE, TRUE),
       date('Y-m-d g:i a', $row->created_time),
       $row->instagram_id,
     );

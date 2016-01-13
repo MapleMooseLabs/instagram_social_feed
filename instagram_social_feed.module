@@ -183,7 +183,7 @@ function instagram_social_feed_cron() {
         'low_resolution' => $low_resolution,
         'thumbnail' => $thumbnail,
         'standard_resolution' => $standard_resolution,
-        'caption' => filter_xss($caption),
+        'caption' => filter_xss(utf8_encode($caption)),
         'instagram_id' => $feed->id,
         'instagram_link' => $feed->link,
         'instagram_user' => $feed->user->username,
@@ -361,6 +361,8 @@ function instagram_social_feed_contents($which_block, $results, $more = '') {
       $html[] = '<div class="instagram-social-feed">';
       $html[] = '<ul class="clearfix">';
       while ($row = $results->fetchAssoc()) {
+        $caption = utf8_decode($row['caption']);
+
         $classes = array(
           'social-feed-item',
           'social-feed-item-' . $count,
@@ -380,7 +382,7 @@ function instagram_social_feed_contents($which_block, $results, $more = '') {
         $html[] = '<li class="' . implode(' ', $classes) . '">';
         $html[] = '<a href="' . $row['instagram_link'] . '" target="_blank">';
         $html[] = '<img src="' . $row['low_resolution'];
-        $html[] = '" width="180" height="180" alt="' . $row['caption'] . '" />';
+        $html[] = '" width="180" height="180" alt="' . $caption . '" />';
         $html[] = '</a>';
         $html[] = '</li>';
         $count++;
