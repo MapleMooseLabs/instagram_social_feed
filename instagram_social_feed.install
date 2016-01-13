@@ -235,7 +235,7 @@ function instagram_social_feed_update_7102() {
  *
  * @see https://www.drupal.org/node/1910376
  */
-function instagram_social_feed_update_7102() {
+function instagram_social_feed_update_7103() {
   if (db_field_exists('instagram_social_feed_photos', 'caption')) {
     $spec = array(
       // Using a blob instead of a text type make it possible for MySQL to
