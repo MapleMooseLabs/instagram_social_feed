@@ -177,7 +177,7 @@ function instagram_social_feed_cron() {
       $data = array(
         'feed_id' => $feed_id,
         'user_id' => $feed->user->id,
-        'tags' => filter_xss($tags),
+        'tags' => filter_xss(utf8_encode($tags)),
         // Time stored in unix epoch format.
         'created_time' => $feed->created_time,
         'low_resolution' => $low_resolution,
