@@ -93,6 +93,18 @@ function instagram_social_feed_schema() {
         'not null' => FALSE,
         'description' => 'Caption',
       ),
+      'like_count' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Like Count',
+      ),
+      'comment_count' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Comment Count',
+      ),
       'instagram_id' => array(
         'type' => 'varchar',
         'length' => 255,

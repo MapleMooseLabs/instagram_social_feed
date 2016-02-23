@@ -120,9 +120,9 @@ function instagram_social_feed_cron() {
     ->condition('enabled', 1, '=')
     ->execute();
 
+
   // For each record in the database:
   foreach ($result as $row) {
-
     $type = $row->feed_type;
     $feed_id = $row->id;
 
@@ -145,6 +145,7 @@ function instagram_social_feed_cron() {
       $text = t("Instagram feed: user's own photos");
     }
 
+
     $total = 0;
     $instagram_feed = json_decode(instagram_social_feed_api_call($instagram_query));
 
@@ -155,15 +156,16 @@ function instagram_social_feed_cron() {
     }
 
     foreach ($instagram_feed->data as $feed) {
+
       // Check if instagram photo already exists based on unix timestamp.
       $result = db_select($table, 'f')
         ->fields('f', array('instagram_id'))
         ->condition('instagram_id', $feed->id, '=')
         ->execute();
       $count = $result->rowCount();
-      if ($count) {
-        continue;
-      }
+      //if ($count) {
+        //continue;
+      //}
 
       // Return tags as comma delimited string.
       $tags = implode(',', $feed->tags);
@@ -174,6 +176,11 @@ function instagram_social_feed_cron() {
       $low_resolution = str_replace('http:', 'https:', $feed->images->low_resolution->url);
       $thumbnail = str_replace('http:', 'https:', $feed->images->thumbnail->url);
       $standard_resolution = str_replace('http:', 'https:', $feed->images->standard_resolution->url);
+
+
+      // 'likes' => $feed->likes->count,
+      // 'comments' => $feed->comments->count,
+
       $data = array(
         'feed_id' => $feed_id,
         'user_id' => $feed->user->id,
@@ -184,19 +191,29 @@ function instagram_social_feed_cron() {
         'thumbnail' => $thumbnail,
         'standard_resolution' => $standard_resolution,
         'caption' => filter_xss(utf8_encode($caption)),
+        'like_count' => $feed->likes->count,
+        'comment_count' => $feed->comments->count,
         'instagram_id' => $feed->id,
         'instagram_link' => $feed->link,
         'instagram_user' => $feed->user->username,
         'approve' => $row->auto_publish,
       );
 
-      // Insert data into table.
-      $result = db_insert($table)->fields($data)->execute();
+      // Insert or update data into table.
+      if ($count) {
+        $result = db_update($table)
+          ->fields($data)
+          ->condition('instagram_id', $feed->id, '=')
+          ->execute();
+      } else {
+        $result = db_insert($table)->fields($data)->execute();
+      }
+
       $total++;
 
     }
 
-    $imported = format_plural($total, '1 item imported', '@count items imported');
+    $imported = format_plural($total, '1 item imported or updated', '@count items imported or updated');
     $message = t("!text: !imported", array('!text' => $text, '!imported' => $imported));
     drupal_set_message($message);
     watchdog(__FUNCTION__, $message);
