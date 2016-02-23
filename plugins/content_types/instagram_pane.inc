@@ -113,4 +113,3 @@ function instagram_social_feed_taxonomy_pane_info($subtype, $conf, $contexts) {
     return $block;
   }
 }
-

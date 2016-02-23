@@ -288,6 +288,26 @@ function instagram_social_feed_block_configure($delta = '') {
       '#size' => 60,
       '#maxlength' => 255,
     );
+
+
+    $form['instagram_social_feed_counts'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Like and Comment Counts'),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+    );
+
+    $form['instagram_social_feed_counts']['instagram_social_feed_like_count'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display the number of likes'),
+      '#default_value' => variable_get('instagram_social_feed_like_count'),
+    );
+
+    $form['instagram_social_feed_counts']['instagram_social_feed_comment_count'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display the number of comments'),
+      '#default_value' => variable_get('instagram_social_feed_comment_count'),
+    );
   }
   return $form;
 }
@@ -299,6 +319,8 @@ function instagram_social_feed_block_save($delta = '', $edit = array()) {
   if ($delta == 'instagram_social_feed_block') {
     variable_set('instagram_social_feed_more_uri', $edit['instagram_social_feed_more_uri']);
     variable_set('instagram_social_feed_more_text', $edit['instagram_social_feed_more_text']);
+    variable_set('instagram_social_feed_like_count', $edit['instagram_social_feed_like_count']);
+    variable_set('instagram_social_feed_comment_count', $edit['instagram_social_feed_comment_count']);
     variable_set('instagram_social_feed_block_count', $edit['instagram_social_feed_block_count']);
     variable_set('instagram_social_feed_feed_selection', $edit['instagram_social_feed_feed_selection']);
   }
@@ -316,7 +338,13 @@ function instagram_social_feed_block_view($delta = '') {
         'more_uri' => variable_get('instagram_social_feed_more_uri'),
         'more_text' => variable_get('instagram_social_feed_more_text'),
       );
-      $block['content'] = instagram_social_feed_contents($delta, instagram_social_feed_get_contents(TRUE), $more);
+
+      $counts = array(
+        'like_count' => variable_get('instagram_social_feed_like_count'),
+        'comment_count' => variable_get('instagram_social_feed_comment_count'),
+      );
+
+      $block['content'] = instagram_social_feed_contents($delta, instagram_social_feed_get_contents(TRUE), $more, $counts);
       return $block;
   }
 }
@@ -368,7 +396,7 @@ function instagram_social_feed_get_contents($isblock = FALSE) {
 /**
  * A module-defined block content function.
  */
-function instagram_social_feed_contents($which_block, $results, $more = '') {
+function instagram_social_feed_contents($which_block, $results, $more = '', $counts = FALSE) {
   switch ($which_block) {
     case 'instagram_social_feed_block':
 
@@ -376,6 +404,18 @@ function instagram_social_feed_contents($which_block, $results, $more = '') {
       $total = $results->rowCount();
       $html = array();
       $html[] = '<div class="instagram-social-feed">';
+      if (isset($more)) {
+        $more_link = l(
+          $more['more_text'],
+          $more['more_uri'],
+          array(
+            'attributes' => array(
+              'class' => array('social-feed-link')
+            ),
+          )
+        );
+        $html[] = $more_link;
+      }
       $html[] = '<ul class="clearfix">';
       while ($row = $results->fetchAssoc()) {
         $caption = utf8_decode($row['caption']);
@@ -400,23 +440,25 @@ function instagram_social_feed_contents($which_block, $results, $more = '') {
         $html[] = '<a href="' . $row['instagram_link'] . '" target="_blank">';
         $html[] = '<img src="' . $row['low_resolution'];
         $html[] = '" width="180" height="180" alt="' . $caption . '" />';
+        if ($counts) {
+          $html[] = '<div class="social-feed-item-counts">';
+          if ($counts['like_count']) {
+            $html[] = '<span class="social-feed-item-count  social-feed-item-like-count">' . $row['like_count'] . ' ' . t('likes') . '</span>';
+          }
+
+          if ($counts['comment_count']) {
+            $html[] = '<span class="social-feed-item-count  social-feed-item-comment-count">' . $row['comment_count'] . ' ' . t('comments') . '</span>';
+          }
+          $html[] = '</div>';
+        } // if $counts
+
         $html[] = '</a>';
+
         $html[] = '</li>';
         $count++;
         }
       $html[] = '</ul>';
-      if (isset($more)) {
-        $more_link = l(
-          $more['more_text'],
-          $more['more_uri'],
-          array(
-            'attributes' => array(
-              'class' => array('social-feed-link')
-            ),
-          )
-        );
-        $html[] = $more_link;
-      }
+
       $html[] = '</div>';
 
       $output = array(
