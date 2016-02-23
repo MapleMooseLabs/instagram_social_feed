@@ -17,7 +17,7 @@ function instagram_social_feed_overview($feed = NULL) {
 
   drupal_add_js(drupal_get_path('module', 'instagram_social_feed') . '/js/instagram_social_feed.js');
 
-  $header = array(t('Thumbnail'), t('User'), t('Caption'), t('Timestamp'), t('Publish?'));
+  $header = array(t('Thumbnail'), t('User'), t('Caption'), t('Like Count'), t('Comment Count'), t('Timestamp'), t('Publish?'));
 
   $query = db_select('instagram_social_feed_photos', 's')
     ->fields('s', array())
@@ -48,6 +48,8 @@ function instagram_social_feed_overview($feed = NULL) {
         )
       ),
       truncate_utf8(utf8_decode($row->caption), 80, FALSE, TRUE),
+      $row->like_count,
+      $row->comment_count,
       date('Y-m-d g:i a', $row->created_time),
       $row->instagram_id,
     );
