@@ -410,7 +410,8 @@ function instagram_social_feed_contents($which_block, $results, $more = '', $cou
           $more['more_uri'],
           array(
             'attributes' => array(
-              'class' => array('social-feed-link')
+              'class' => array('social-feed-link'),
+              'target' => '_blank'
             ),
           )
         );
@@ -439,15 +440,18 @@ function instagram_social_feed_contents($which_block, $results, $more = '', $cou
         $html[] = '<li class="' . implode(' ', $classes) . '">';
         $html[] = '<a href="' . $row['instagram_link'] . '" target="_blank">';
         $html[] = '<img src="' . $row['low_resolution'];
-        $html[] = '" width="180" height="180" alt="' . $caption . '" />';
+        $html[] = '" alt="' . $caption . '" />';
+        //$html[] = '" width="180" height="180" alt="' . $caption . '" />';
         if ($counts) {
           $html[] = '<div class="social-feed-item-counts">';
           if ($counts['like_count']) {
-            $html[] = '<span class="social-feed-item-count  social-feed-item-like-count">' . $row['like_count'] . ' ' . t('likes') . '</span>';
+            $html[] = '<span class="social-feed-item-count  social-feed-item-like-count">' . $row['like_count'] . '</span>';
+            //$html[] = '<span class="social-feed-item-count  social-feed-item-like-count">' . $row['like_count'] . ' ' . t('likes') . '</span>';
           }
 
           if ($counts['comment_count']) {
-            $html[] = '<span class="social-feed-item-count  social-feed-item-comment-count">' . $row['comment_count'] . ' ' . t('comments') . '</span>';
+            $html[] = '<span class="social-feed-item-count  social-feed-item-comment-count">' . $row['comment_count'] . '</span>';
+            //$html[] = '<span class="social-feed-item-count  social-feed-item-comment-count">' . $row['comment_count'] . ' ' . t('comments') . '</span>';
           }
           $html[] = '</div>';
         } // if $counts
